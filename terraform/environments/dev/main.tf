@@ -15,3 +15,16 @@ module "gke" {
   pods_range_name      = module.network.pods_range_name
   services_range_name  = module.network.services_range_name
 }
+
+module "artifact_registry" {
+  source = "../../modules/artifact-registry"
+
+  project_id = var.project_id
+  region     = var.region
+}
+
+module "iam" {
+  source = "../../modules/iam"
+
+  project_id = var.project_id
+}
