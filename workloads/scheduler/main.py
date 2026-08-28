@@ -85,6 +85,18 @@ def schedule_loop():
         job.scheduled_at = time.time()
         r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
 
+        # Reserve capacity immediately in Redis, rather than waiting for the
+        # worker's next heartbeat (up to HEARTBEAT_INTERVAL_SECONDS away).
+        # Without this, two jobs assigned within the same heartbeat window
+        # can both be scheduled against the same worker's stale capacity
+        # figure, causing over-assignment. This is an optimistic reservation:
+        # the worker's own heartbeat remains the source of truth and will
+        # correct this figure once it processes the job, but the reservation
+        # closes the race window between scheduling decisions.
+        worker_key = f"{WORKER_KEY_PREFIX}{chosen['worker_id']}"
+        r.hincrby(worker_key, "available_cpu_millicores", -job.cpu_millicores)
+        r.hincrby(worker_key, "available_memory_mb", -job.memory_mb)
+
         r.rpush(f"{ASSIGNED_QUEUE_PREFIX}{chosen['worker_id']}", job.job_id)
 
         latency = job.scheduling_latency_seconds()
