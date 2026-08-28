@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: scheduler/Dockerfile
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker-1:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      WORKER_CPU_MILLICORES: "1000"
+      WORKER_MEMORY_MB: "512"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker-2:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      WORKER_CPU_MILLICORES: "1000"
+      WORKER_MEMORY_MB: "512"
+    depends_on:
+      redis:
+        condition: service_healthy
