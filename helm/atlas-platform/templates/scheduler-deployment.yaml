@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atlas-scheduler
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: atlas-scheduler
+    component: scheduler
+spec:
+  replicas: {{ .Values.scheduler.replicas }}
+  selector:
+    matchLabels:
+      app: atlas-scheduler
+  template:
+    metadata:
+      labels:
+        app: atlas-scheduler
+        component: scheduler
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: atlas-scheduler
+          image: "{{ .Values.image.registry }}/atlas-scheduler:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+          resources:
+            {{- toYaml .Values.scheduler.resources | nindent 12 }}

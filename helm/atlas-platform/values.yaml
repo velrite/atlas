@@ -1,0 +1,51 @@
+namespace: atlas-platform
+
+image:
+  registry: us-central1-docker.pkg.dev/velrite-tf-test/atlas-images
+  tag: v1
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  name: atlas-workload-ksa
+
+redis:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+api:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+scheduler:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+worker:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  cpuMillicores: "1000"
+  memoryMb: "512"

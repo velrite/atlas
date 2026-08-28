@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atlas-worker
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: atlas-worker
+    component: worker
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      app: atlas-worker
+  template:
+    metadata:
+      labels:
+        app: atlas-worker
+        component: worker
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: atlas-worker
+          image: "{{ .Values.image.registry }}/atlas-worker:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: WORKER_CPU_MILLICORES
+              value: "{{ .Values.worker.cpuMillicores }}"
+            - name: WORKER_MEMORY_MB
+              value: "{{ .Values.worker.memoryMb }}"
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
