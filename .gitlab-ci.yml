@@ -25,9 +25,10 @@ test:
   stage: test
   image: python:3.12-slim
   script:
-    - echo "Placeholder stage: no unit tests exist yet for workloads/ components."
-    - echo "Integration-level validation was performed manually in Phase 4/5 (see docs/decisions/ADR-005, ADR-006)."
-    - echo "Real unit tests are tracked as technical debt -- see docs/troubleshooting/"
+    - echo "Placeholder stage. No unit tests exist yet for workloads components."
+    - echo "Integration level validation was performed manually in Phase 4 and Phase 5."
+    - echo "See docs decisions ADR005 and ADR006 for details."
+    - echo "Real unit tests are tracked as technical debt. See docs troubleshooting."
   allow_failure: false
 
 # ---------------------------------------------------------------
