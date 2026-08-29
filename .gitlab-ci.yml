@@ -1,0 +1,179 @@
+# Atlas CI/CD Pipeline
+# Runs on GitLab.com shared runners, triggered by pushes mirrored from GitHub.
+
+variables:
+  REGISTRY: us-central1-docker.pkg.dev/velrite-tf-test/atlas-images
+  IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
+
+stages:
+  - test
+  - lint
+  - sast
+  - dependency-scan
+  - build
+  - image-scan
+  - push
+  - gitops-update
+
+# ---------------------------------------------------------------
+# TEST: run any Python unit tests present. Currently a placeholder
+# since Phase 4/5 validation was done via Docker Compose integration
+# testing rather than unit tests -- real unit tests are acknowledged
+# as a gap, not hidden, and tracked as technical debt.
+# ---------------------------------------------------------------
+test:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - echo "Placeholder stage: no unit tests exist yet for workloads/ components."
+    - echo "Integration-level validation was performed manually in Phase 4/5 (see docs/decisions/ADR-005, ADR-006)."
+    - echo "Real unit tests are tracked as technical debt -- see docs/troubleshooting/"
+  allow_failure: false
+
+# ---------------------------------------------------------------
+# LINT: Python style/syntax checking with flake8
+# ---------------------------------------------------------------
+lint:
+  stage: lint
+  image: python:3.12-slim
+  before_script:
+    - pip install --no-cache-dir flake8
+  script:
+    - flake8 workloads/ --max-line-length=120 --extend-ignore=E501,W503 --exit-zero
+    - echo "Lint stage complete. exit-zero used so style findings are visible but non-blocking in this phase."
+
+# ---------------------------------------------------------------
+# SAST: static analysis of our own Python source with Bandit
+# ---------------------------------------------------------------
+sast:
+  stage: sast
+  image: python:3.12-slim
+  before_script:
+    - pip install --no-cache-dir bandit
+  script:
+    - bandit -r workloads/ -f json -o bandit-report.json || true
+    - bandit -r workloads/ -ll
+  artifacts:
+    paths:
+      - bandit-report.json
+    when: always
+  allow_failure: false
+
+# ---------------------------------------------------------------
+# DEPENDENCY SCAN: check requirements.txt files against known CVEs
+# using Trivy's filesystem scan mode.
+# ---------------------------------------------------------------
+dependency-scan:
+  stage: dependency-scan
+  image: aquasec/trivy:latest
+  script:
+    - trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 workloads/api/requirements.txt
+    - trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 workloads/scheduler/requirements.txt
+    - trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 workloads/worker/requirements.txt
+    - trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 workloads/common/requirements.txt
+  allow_failure: true
+
+# ---------------------------------------------------------------
+# IAC SCAN: Checkov against Terraform and Helm chart
+# ---------------------------------------------------------------
+iac-scan:
+  stage: dependency-scan
+  image: bridgecrew/checkov:latest
+  script:
+    - checkov -d terraform/ --compact --quiet || true
+    - checkov -d helm/ --compact --quiet || true
+    - echo "IaC scan complete. Non-blocking in this phase -- findings reviewed manually."
+  allow_failure: true
+
+# ---------------------------------------------------------------
+# BUILD: build all three images, tagged with commit SHA (immutable)
+# ---------------------------------------------------------------
+build-api:
+  stage: build
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t "${REGISTRY}/atlas-api:${IMAGE_TAG}" -f workloads/api/Dockerfile workloads/
+    - docker save "${REGISTRY}/atlas-api:${IMAGE_TAG}" -o api-image.tar
+  artifacts:
+    paths:
+      - api-image.tar
+    expire_in: 1 hour
+
+build-scheduler:
+  stage: build
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t "${REGISTRY}/atlas-scheduler:${IMAGE_TAG}" -f workloads/scheduler/Dockerfile workloads/
+    - docker save "${REGISTRY}/atlas-scheduler:${IMAGE_TAG}" -o scheduler-image.tar
+  artifacts:
+    paths:
+      - scheduler-image.tar
+    expire_in: 1 hour
+
+build-worker:
+  stage: build
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t "${REGISTRY}/atlas-worker:${IMAGE_TAG}" -f workloads/worker/Dockerfile workloads/
+    - docker save "${REGISTRY}/atlas-worker:${IMAGE_TAG}" -o worker-image.tar
+  artifacts:
+    paths:
+      - worker-image.tar
+    expire_in: 1 hour
+
+# ---------------------------------------------------------------
+# IMAGE SCAN: Trivy scans the built image tarballs before push
+# ---------------------------------------------------------------
+image-scan:
+  stage: image-scan
+  image: aquasec/trivy:latest
+  needs:
+    - build-api
+    - build-scheduler
+    - build-worker
+  script:
+    - trivy image --input api-image.tar --severity HIGH,CRITICAL --exit-code 0
+    - trivy image --input scheduler-image.tar --severity HIGH,CRITICAL --exit-code 0
+    - trivy image --input worker-image.tar --severity HIGH,CRITICAL --exit-code 0
+    - echo "Image scan complete. exit-code 0 (non-blocking) until baseline findings are triaged -- see docs/security/"
+  allow_failure: true
+
+# ---------------------------------------------------------------
+# PUSH: authenticate to Artifact Registry via Workload Identity
+# Federation is the production-correct approach; for this phase,
+# GCP_SERVICE_ACCOUNT_KEY is documented as a known limitation,
+# since org policy blocks key creation for our own service accounts
+# and WIF setup between GitLab and GCP is scoped to a later hardening
+# pass rather than this initial pipeline phase.
+# ---------------------------------------------------------------
+push:
+  stage: push
+  image: google/cloud-sdk:slim
+  needs:
+    - build-api
+    - build-scheduler
+    - build-worker
+    - image-scan
+  script:
+    - echo "PUSH STAGE PLACEHOLDER -- see docs/decisions/ADR-007 for why this does not yet authenticate to GCP"
+    - echo "Images built and scanned successfully in this pipeline run:"
+    - ls -la *.tar
+  allow_failure: false
+
+# ---------------------------------------------------------------
+# GITOPS UPDATE: placeholder until Phase 7 introduces the gitops/
+# manifests that Argo CD will watch.
+# ---------------------------------------------------------------
+gitops-update:
+  stage: gitops-update
+  image: alpine:latest
+  needs:
+    - push
+  script:
+    - echo "GITOPS UPDATE PLACEHOLDER -- implemented in Phase 7 once Argo CD and gitops/ manifests exist."
