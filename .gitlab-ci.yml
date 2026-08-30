@@ -175,7 +175,7 @@ push:
     - build-worker
     - image-scan
   before_script:
-    - apk add --no-cache python3 py3-pip curl
+    - apk add --no-cache python3 py3-pip curl bash
     - curl -sSL https://sdk.cloud.google.com | bash > /dev/null
     - export PATH="$PATH:/root/google-cloud-sdk/bin"
   script:
