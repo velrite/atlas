@@ -4,6 +4,8 @@
 variables:
   REGISTRY: us-central1-docker.pkg.dev/velrite-tf-test/atlas-images
   IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
+  WIF_PROVIDER: "projects/362285503795/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
+  CI_SA_EMAIL: "atlas-gitlab-ci@velrite-tf-test.iam.gserviceaccount.com"
 
 stages:
   - test
@@ -161,16 +163,37 @@ image-scan:
 # ---------------------------------------------------------------
 push:
   stage: push
-  image: google/cloud-sdk:slim
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: "https://iam.googleapis.com/${WIF_PROVIDER}"
   needs:
     - build-api
     - build-scheduler
     - build-worker
     - image-scan
+  before_script:
+    - apk add --no-cache python3 py3-pip curl
+    - curl -sSL https://sdk.cloud.google.com | bash > /dev/null
+    - export PATH="$PATH:/root/google-cloud-sdk/bin"
   script:
-    - echo "PUSH STAGE PLACEHOLDER -- see docs/decisions/ADR-007 for why this does not yet authenticate to GCP"
-    - echo "Images built and scanned successfully in this pipeline run:"
-    - ls -la *.tar
+    - echo "${GITLAB_OIDC_TOKEN}" > /tmp/gitlab_oidc_token.txt
+    - gcloud iam workload-identity-pools create-cred-config "${WIF_PROVIDER}"
+        --service-account="${CI_SA_EMAIL}"
+        --output-file=/tmp/gcp-cred-config.json
+        --credential-source-file=/tmp/gitlab_oidc_token.txt
+    - gcloud auth login --cred-file=/tmp/gcp-cred-config.json
+    - gcloud auth print-access-token --impersonate-service-account="${CI_SA_EMAIL}" > /tmp/access-token.txt || gcloud auth print-access-token > /tmp/access-token.txt
+    - cat /tmp/access-token.txt | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+    - docker load -i api-image.tar
+    - docker load -i scheduler-image.tar
+    - docker load -i worker-image.tar
+    - docker push "${REGISTRY}/atlas-api:${IMAGE_TAG}"
+    - docker push "${REGISTRY}/atlas-scheduler:${IMAGE_TAG}"
+    - docker push "${REGISTRY}/atlas-worker:${IMAGE_TAG}"
+    - echo "Pushed images tagged ${IMAGE_TAG} to Artifact Registry via keyless Workload Identity Federation."
   allow_failure: false
 
 # ---------------------------------------------------------------
