@@ -19,7 +19,7 @@ redis:
       memory: 128Mi
 
 api:
-  replicas: 1
+  replicas: 2
   resources:
     requests:
       cpu: 100m
@@ -39,7 +39,7 @@ scheduler:
       memory: 256Mi
 
 worker:
-  replicas: 1
+  replicas: 2
   resources:
     requests:
       cpu: 50m
