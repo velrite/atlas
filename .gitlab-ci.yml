@@ -206,4 +206,15 @@ gitops-update:
   needs:
     - push
   script:
-    - echo "GITOPS UPDATE PLACEHOLDER -- implemented in Phase 7 once Argo CD and gitops/ manifests exist."
+    - apk add --no-cache git
+    - git config --global user.email "gitlab-ci@atlas-platform.local"
+    - git config --global user.name "GitLab CI"
+    - git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/velrite/atlas.git" /tmp/atlas-gitops
+    - cp scripts-update-tag.sh /tmp/atlas-gitops/
+    - cd /tmp/atlas-gitops
+    - sh scripts-update-tag.sh
+    - cat helm/atlas-platform/values.yaml
+    - git add helm/atlas-platform/values.yaml
+    - git diff --cached --quiet && echo "No change" || git commit -m "GitOps update image tag [ci skip]"
+    - git diff --cached --quiet || git push origin main
+    - echo "GitOps update complete."
