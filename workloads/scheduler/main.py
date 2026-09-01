@@ -9,6 +9,7 @@ import time
 import logging
 
 import redis
+from prometheus_client import Counter, Histogram, Gauge, start_http_server
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "common"))
 from job import Job, JobStatus
@@ -25,6 +26,23 @@ ASSIGNED_QUEUE_PREFIX = "atlas:queue:worker:"
 WORKER_HEARTBEAT_TIMEOUT_SECONDS = 15
 
 r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+
+JOBS_SCHEDULED = Counter(
+    "atlas_scheduler_jobs_scheduled_total",
+    "Total jobs successfully scheduled to a worker"
+)
+JOBS_REQUEUED = Counter(
+    "atlas_scheduler_jobs_requeued_total",
+    "Total jobs requeued due to insufficient capacity"
+)
+SCHEDULING_LATENCY = Histogram(
+    "atlas_scheduler_scheduling_latency_seconds",
+    "Time from job submission to scheduling assignment"
+)
+LIVE_WORKERS = Gauge(
+    "atlas_scheduler_live_workers",
+    "Number of workers considered live by the scheduler"
+)
 
 
 def get_live_workers():
@@ -74,8 +92,11 @@ def schedule_loop():
         candidates = get_live_workers()
         chosen = select_worker(job, candidates)
 
+        LIVE_WORKERS.set(len(candidates))
+
         if chosen is None:
             logger.warning(f"No capacity for job {job.job_id} (needs {job.cpu_millicores}m/{job.memory_mb}MB, {len(candidates)} live workers). Requeuing.")
+            JOBS_REQUEUED.inc()
             r.rpush(QUEUE_KEY, job.job_id)
             time.sleep(1)
             continue
@@ -101,7 +122,10 @@ def schedule_loop():
 
         latency = job.scheduling_latency_seconds()
         logger.info(f"Job {job.job_id} assigned to {chosen['worker_id']} (scheduling latency: {latency:.3f}s)")
+        JOBS_SCHEDULED.inc()
+        SCHEDULING_LATENCY.observe(latency)
 
 
 if __name__ == "__main__":
+    start_http_server(9090)
     schedule_loop()

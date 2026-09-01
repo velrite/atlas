@@ -22,6 +22,9 @@ spec:
         - name: atlas-worker
           image: "{{ .Values.image.registry }}/atlas-worker:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9090
+              name: metrics
           env:
             - name: REDIS_HOST
               value: "redis"

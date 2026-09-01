@@ -12,6 +12,7 @@ import logging
 import threading
 
 import redis
+from prometheus_client import Counter, Histogram, start_http_server
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "common"))
 from job import Job, JobStatus
@@ -32,6 +33,16 @@ TOTAL_MEMORY_MB = int(os.environ.get("WORKER_MEMORY_MB", "512"))
 WORKER_ID = f"worker-{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
 
 r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+
+JOBS_EXECUTED = Counter(
+    "atlas_worker_jobs_executed_total",
+    "Total jobs executed by this worker",
+    ["outcome"]
+)
+JOB_DURATION = Histogram(
+    "atlas_worker_job_duration_seconds",
+    "Job execution duration"
+)
 
 _lock = threading.Lock()
 _used_cpu = 0
@@ -78,6 +89,7 @@ def execute_job(job):
 
         job.status = JobStatus.SUCCEEDED
         job.result = {"message": "completed", "worker": WORKER_ID}
+        JOBS_EXECUTED.labels(outcome="succeeded").inc()
 
     except Exception as e:
         job.error = str(e)
@@ -92,6 +104,13 @@ def execute_job(job):
     finally:
         job.finished_at = time.time()
         r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
+        if job.status == JobStatus.DEAD_LETTER:
+            JOBS_EXECUTED.labels(outcome="dead_letter").inc()
+        elif job.status == JobStatus.QUEUED:
+            JOBS_EXECUTED.labels(outcome="retry").inc()
+        duration = job.total_duration_seconds()
+        if duration is not None:
+            JOB_DURATION.observe(duration)
         with _lock:
             _used_cpu -= job.cpu_millicores
             _used_memory -= job.memory_mb
@@ -114,6 +133,7 @@ def work_loop():
 
 
 if __name__ == "__main__":
+    start_http_server(9090)
     hb_thread = threading.Thread(target=heartbeat_loop, daemon=True)
     hb_thread.start()
     work_loop()

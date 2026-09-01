@@ -22,6 +22,9 @@ spec:
         - name: atlas-scheduler
           image: "{{ .Values.image.registry }}/atlas-scheduler:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9090
+              name: metrics
           env:
             - name: REDIS_HOST
               value: "redis"

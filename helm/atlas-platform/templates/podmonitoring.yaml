@@ -1,0 +1,41 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: atlas-api-monitoring
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: atlas-api
+  endpoints:
+    - port: 8080
+      interval: 15s
+      path: /metrics
+---
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: atlas-scheduler-monitoring
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: atlas-scheduler
+  endpoints:
+    - port: 9090
+      interval: 15s
+      path: /metrics
+---
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: atlas-worker-monitoring
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: atlas-worker
+  endpoints:
+    - port: 9090
+      interval: 15s
+      path: /metrics

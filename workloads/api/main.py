@@ -7,8 +7,10 @@ import os
 import sys
 import logging
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import redis
+import time
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "common"))
 from job import Job, JobStatus
@@ -17,6 +19,17 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger("atlas-api")
 
 app = Flask(__name__)
+
+REQUEST_COUNT = Counter(
+    "atlas_api_requests_total",
+    "Total API requests",
+    ["endpoint", "method", "status"]
+)
+REQUEST_LATENCY = Histogram(
+    "atlas_api_request_duration_seconds",
+    "API request latency",
+    ["endpoint"]
+)
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
@@ -46,6 +59,7 @@ def ready():
 
 @app.route("/jobs", methods=["POST"])
 def submit_job():
+    start_time = time.time()
     body = request.get_json(force=True, silent=True) or {}
 
     job = Job(
@@ -62,6 +76,9 @@ def submit_job():
     r.rpush(QUEUE_KEY, job.job_id)
 
     logger.info(f"Job submitted: {job.job_id}")
+
+    REQUEST_COUNT.labels(endpoint="/jobs", method="POST", status="202").inc()
+    REQUEST_LATENCY.labels(endpoint="/jobs").observe(time.time() - start_time)
 
     return jsonify({"job_id": job.job_id, "status": job.status.value}), 202
 
@@ -82,6 +99,11 @@ def get_job(job_id):
         "result": job.result,
         "error": job.error,
     }), 200
+
+
+@app.route("/metrics", methods=["GET"])
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 if __name__ == "__main__":
