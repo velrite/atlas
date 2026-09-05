@@ -156,3 +156,10 @@ This runbook is specific to the Atlas project's resource names and paths.
 Reusing this pattern for a different project requires substituting project-
 specific names (cluster name, namespace, service account names, Helm chart
 path) rather than running these commands unmodified.
+
+## Grafana rebuild (if grafana namespace deleted)
+Re-deploy Grafana v0.17.2 manifest, recreate its service-account token + datasource UID via the Grafana API over port-forward, rebind Workload Identity for datasource-syncer-ksa, reapply the CronJob and trigger one run manually, reimport observability/dashboards/atlas-platform-overview.json.
+
+## Argo CD sync workaround (core mode)
+argocd app sync --core fails with configmap argocd-cm not found. Use instead:
+kubectl -n argocd patch applications.argoproj.io ATLAS_APP --type merge -p "{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}"
