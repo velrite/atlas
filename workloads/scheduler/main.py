@@ -10,12 +10,16 @@ import logging
 
 import redis
 from prometheus_client import Counter, Histogram, Gauge, start_http_server
+from opentelemetry.propagate import extract
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "common"))
 from job import Job, JobStatus
+from tracing import init_tracer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("atlas-scheduler")
+
+tracer = init_tracer("atlas-scheduler")
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
@@ -89,41 +93,55 @@ def schedule_loop():
 
         job = Job.from_json(raw)
 
-        candidates = get_live_workers()
-        chosen = select_worker(job, candidates)
+        # Extract the traceparent the API injected at submission time so
+        # this scheduling span shares the same trace_id. An empty/missing
+        # trace_context (e.g. jobs submitted before this change) yields an
+        # invalid context, which just means this span starts its own trace
+        # instead of erroring -- a safe fallback.
+        ctx = extract(job.trace_context)
 
-        LIVE_WORKERS.set(len(candidates))
+        with tracer.start_as_current_span("schedule_job", context=ctx) as span:
+            span.set_attribute("atlas.job_id", job.job_id)
 
-        if chosen is None:
-            logger.warning(f"No capacity for job {job.job_id} (needs {job.cpu_millicores}m/{job.memory_mb}MB, {len(candidates)} live workers). Requeuing.")
-            JOBS_REQUEUED.inc()
-            r.rpush(QUEUE_KEY, job.job_id)
-            time.sleep(1)
-            continue
+            candidates = get_live_workers()
+            chosen = select_worker(job, candidates)
 
-        job.status = JobStatus.ASSIGNED
-        job.assigned_worker = chosen["worker_id"]
-        job.scheduled_at = time.time()
-        r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
+            LIVE_WORKERS.set(len(candidates))
+            span.set_attribute("atlas.live_workers", len(candidates))
 
-        # Reserve capacity immediately in Redis, rather than waiting for the
-        # worker's next heartbeat (up to HEARTBEAT_INTERVAL_SECONDS away).
-        # Without this, two jobs assigned within the same heartbeat window
-        # can both be scheduled against the same worker's stale capacity
-        # figure, causing over-assignment. This is an optimistic reservation:
-        # the worker's own heartbeat remains the source of truth and will
-        # correct this figure once it processes the job, but the reservation
-        # closes the race window between scheduling decisions.
-        worker_key = f"{WORKER_KEY_PREFIX}{chosen['worker_id']}"
-        r.hincrby(worker_key, "available_cpu_millicores", -job.cpu_millicores)
-        r.hincrby(worker_key, "available_memory_mb", -job.memory_mb)
+            if chosen is None:
+                logger.warning(f"No capacity for job {job.job_id} (needs {job.cpu_millicores}m/{job.memory_mb}MB, {len(candidates)} live workers). Requeuing.")
+                span.set_attribute("atlas.scheduling_outcome", "requeued_no_capacity")
+                JOBS_REQUEUED.inc()
+                r.rpush(QUEUE_KEY, job.job_id)
+                time.sleep(1)
+                continue
 
-        r.rpush(f"{ASSIGNED_QUEUE_PREFIX}{chosen['worker_id']}", job.job_id)
+            job.status = JobStatus.ASSIGNED
+            job.assigned_worker = chosen["worker_id"]
+            job.scheduled_at = time.time()
+            r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
 
-        latency = job.scheduling_latency_seconds()
-        logger.info(f"Job {job.job_id} assigned to {chosen['worker_id']} (scheduling latency: {latency:.3f}s)")
-        JOBS_SCHEDULED.inc()
-        SCHEDULING_LATENCY.observe(latency)
+            # Reserve capacity immediately in Redis, rather than waiting for the
+            # worker's next heartbeat (up to HEARTBEAT_INTERVAL_SECONDS away).
+            # Without this, two jobs assigned within the same heartbeat window
+            # can both be scheduled against the same worker's stale capacity
+            # figure, causing over-assignment. This is an optimistic reservation:
+            # the worker's own heartbeat remains the source of truth and will
+            # correct this figure once it processes the job, but the reservation
+            # closes the race window between scheduling decisions.
+            worker_key = f"{WORKER_KEY_PREFIX}{chosen['worker_id']}"
+            r.hincrby(worker_key, "available_cpu_millicores", -job.cpu_millicores)
+            r.hincrby(worker_key, "available_memory_mb", -job.memory_mb)
+
+            r.rpush(f"{ASSIGNED_QUEUE_PREFIX}{chosen['worker_id']}", job.job_id)
+
+            latency = job.scheduling_latency_seconds()
+            span.set_attribute("atlas.scheduling_outcome", "assigned")
+            span.set_attribute("atlas.assigned_worker", chosen["worker_id"])
+            logger.info(f"Job {job.job_id} assigned to {chosen['worker_id']} (scheduling latency: {latency:.3f}s)")
+            JOBS_SCHEDULED.inc()
+            SCHEDULING_LATENCY.observe(latency)
 
 
 if __name__ == "__main__":

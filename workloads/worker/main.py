@@ -13,12 +13,16 @@ import threading
 
 import redis
 from prometheus_client import Counter, Histogram, start_http_server
+from opentelemetry.propagate import extract
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "common"))
 from job import Job, JobStatus
+from tracing import init_tracer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("atlas-worker")
+
+tracer = init_tracer("atlas-worker")
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
@@ -66,54 +70,68 @@ def heartbeat_loop():
 def execute_job(job):
     global _used_cpu, _used_memory
 
-    raw = r.get(f"{JOB_KEY_PREFIX}{job.job_id}")
-    if raw:
-        current = Job.from_json(raw)
-        if current.status == JobStatus.SUCCEEDED:
-            logger.info(f"Job {job.job_id} already succeeded elsewhere -- skipping duplicate execution")
-            return
+    # Extract the traceparent carried through Redis so this execution span
+    # shares the same trace_id as the original submission and scheduling
+    # spans -- the manual propagation step this Redis-mediated handoff needs.
+    ctx = extract(job.trace_context)
 
-    with _lock:
-        _used_cpu += job.cpu_millicores
-        _used_memory += job.memory_mb
+    with tracer.start_as_current_span("execute_job", context=ctx) as span:
+        span.set_attribute("atlas.job_id", job.job_id)
+        span.set_attribute("atlas.worker_id", WORKER_ID)
 
-    job.status = JobStatus.RUNNING
-    job.started_at = time.time()
-    job.attempts += 1
-    r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
-    logger.info(f"Executing job {job.job_id} (attempt {job.attempts})")
+        raw = r.get(f"{JOB_KEY_PREFIX}{job.job_id}")
+        if raw:
+            current = Job.from_json(raw)
+            if current.status == JobStatus.SUCCEEDED:
+                logger.info(f"Job {job.job_id} already succeeded elsewhere -- skipping duplicate execution")
+                span.set_attribute("atlas.outcome", "skipped_duplicate")
+                return
 
-    try:
-        work_duration = min(job.payload.get("simulated_duration_seconds", 2), job.max_runtime_seconds)
-        time.sleep(work_duration)
-
-        job.status = JobStatus.SUCCEEDED
-        job.result = {"message": "completed", "worker": WORKER_ID}
-        JOBS_EXECUTED.labels(outcome="succeeded").inc()
-
-    except Exception as e:
-        job.error = str(e)
-        if job.attempts >= job.max_retries:
-            job.status = JobStatus.DEAD_LETTER
-            logger.error(f"Job {job.job_id} exceeded max retries ({job.max_retries}) -- dead-lettered")
-        else:
-            job.status = JobStatus.QUEUED
-            logger.warning(f"Job {job.job_id} failed (attempt {job.attempts}), will retry")
-            r.rpush("atlas:queue:pending", job.job_id)
-
-    finally:
-        job.finished_at = time.time()
-        r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
-        if job.status == JobStatus.DEAD_LETTER:
-            JOBS_EXECUTED.labels(outcome="dead_letter").inc()
-        elif job.status == JobStatus.QUEUED:
-            JOBS_EXECUTED.labels(outcome="retry").inc()
-        duration = job.total_duration_seconds()
-        if duration is not None:
-            JOB_DURATION.observe(duration)
         with _lock:
-            _used_cpu -= job.cpu_millicores
-            _used_memory -= job.memory_mb
+            _used_cpu += job.cpu_millicores
+            _used_memory += job.memory_mb
+
+        job.status = JobStatus.RUNNING
+        job.started_at = time.time()
+        job.attempts += 1
+        r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
+        logger.info(f"Executing job {job.job_id} (attempt {job.attempts})")
+
+        try:
+            work_duration = min(job.payload.get("simulated_duration_seconds", 2), job.max_runtime_seconds)
+            time.sleep(work_duration)
+
+            job.status = JobStatus.SUCCEEDED
+            job.result = {"message": "completed", "worker": WORKER_ID}
+            JOBS_EXECUTED.labels(outcome="succeeded").inc()
+            span.set_attribute("atlas.outcome", "succeeded")
+
+        except Exception as e:
+            job.error = str(e)
+            span.record_exception(e)
+            if job.attempts >= job.max_retries:
+                job.status = JobStatus.DEAD_LETTER
+                logger.error(f"Job {job.job_id} exceeded max retries ({job.max_retries}) -- dead-lettered")
+                span.set_attribute("atlas.outcome", "dead_letter")
+            else:
+                job.status = JobStatus.QUEUED
+                logger.warning(f"Job {job.job_id} failed (attempt {job.attempts}), will retry")
+                span.set_attribute("atlas.outcome", "retry")
+                r.rpush("atlas:queue:pending", job.job_id)
+
+        finally:
+            job.finished_at = time.time()
+            r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
+            if job.status == JobStatus.DEAD_LETTER:
+                JOBS_EXECUTED.labels(outcome="dead_letter").inc()
+            elif job.status == JobStatus.QUEUED:
+                JOBS_EXECUTED.labels(outcome="retry").inc()
+            duration = job.total_duration_seconds()
+            if duration is not None:
+                JOB_DURATION.observe(duration)
+            with _lock:
+                _used_cpu -= job.cpu_millicores
+                _used_memory -= job.memory_mb
 
 
 def work_loop():

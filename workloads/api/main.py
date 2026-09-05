@@ -11,14 +11,20 @@ from flask import Flask, request, jsonify, Response
 import redis
 import time
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from opentelemetry.propagate import inject
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "common"))
 from job import Job, JobStatus
+from tracing import init_tracer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("atlas-api")
 
 app = Flask(__name__)
+
+tracer = init_tracer("atlas-api")
+FlaskInstrumentor().instrument_app(app)
 
 REQUEST_COUNT = Counter(
     "atlas_api_requests_total",
@@ -72,8 +78,18 @@ def submit_job():
         payload=body.get("payload", {}),
     )
 
-    r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
-    r.rpush(QUEUE_KEY, job.job_id)
+    with tracer.start_as_current_span("submit_job") as span:
+        span.set_attribute("atlas.job_id", job.job_id)
+        span.set_attribute("atlas.cpu_millicores", job.cpu_millicores)
+        span.set_attribute("atlas.memory_mb", job.memory_mb)
+
+        # Inject the current span's W3C traceparent into the job record
+        # itself, since it's about to leave process boundaries via Redis
+        # rather than an HTTP call OTel could auto-propagate.
+        inject(job.trace_context)
+
+        r.set(f"{JOB_KEY_PREFIX}{job.job_id}", job.to_json())
+        r.rpush(QUEUE_KEY, job.job_id)
 
     logger.info(f"Job submitted: {job.job_id}")
 

@@ -43,6 +43,13 @@ class Job:
     result: Optional[dict] = None
     error: Optional[str] = None
 
+    # W3C traceparent carrier, injected at submission time by the API and
+    # read back at each stage (scheduler, worker) so all spans for this
+    # job share one trace_id -- this is the deliberate manual propagation
+    # this project's Redis-mediated handoff needs, since there's no HTTP
+    # call between scheduler and worker for auto-instrumentation to hook.
+    trace_context: dict = field(default_factory=dict)
+
     def to_json(self) -> str:
         d = asdict(self)
         d["status"] = self.status.value
