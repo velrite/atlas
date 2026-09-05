@@ -1,0 +1,73 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "atlas-platform-overview",
+    "title": "Atlas Platform Overview",
+    "tags": ["atlas"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1, "title": "API Request Rate by Endpoint/Status",
+        "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [{"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+          "expr": "sum(rate(atlas_api_requests_total[5m])) by (endpoint, status)",
+          "legendFormat": "{{endpoint}} - {{status}}"}]
+      },
+      {
+        "id": 2, "title": "API Request Latency p95",
+        "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [{"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+          "expr": "histogram_quantile(0.95, sum(rate(atlas_api_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+          "legendFormat": "{{endpoint}}"}]
+      },
+      {
+        "id": 3, "title": "Scheduler Scheduling Latency p95",
+        "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [{"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+          "expr": "histogram_quantile(0.95, sum(rate(atlas_scheduler_scheduling_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 latency"}]
+      },
+      {
+        "id": 4, "title": "Scheduler Scheduled vs Requeued Rate",
+        "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [
+          {"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+            "expr": "rate(atlas_scheduler_jobs_scheduled_total[5m])", "legendFormat": "scheduled"},
+          {"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+            "expr": "rate(atlas_scheduler_jobs_requeued_total[5m])", "legendFormat": "requeued"}
+        ]
+      },
+      {
+        "id": 5, "title": "Live Workers",
+        "type": "stat", "gridPos": {"h": 8, "w": 6, "x": 0, "y": 16},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [{"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+          "expr": "atlas_scheduler_live_workers", "legendFormat": "workers"}]
+      },
+      {
+        "id": 6, "title": "Worker Job Outcome Breakdown",
+        "type": "timeseries", "gridPos": {"h": 8, "w": 9, "x": 6, "y": 16},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [{"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+          "expr": "sum(rate(atlas_worker_jobs_executed_total[5m])) by (outcome)",
+          "legendFormat": "{{outcome}}"}]
+      },
+      {
+        "id": 7, "title": "Worker Job Duration p95",
+        "type": "timeseries", "gridPos": {"h": 8, "w": 9, "x": 15, "y": 16},
+        "datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+        "targets": [{"datasource": {"type": "prometheus", "uid": "e3fe171a-91e4-4144-9ff2-051cfbf28042"},
+          "expr": "histogram_quantile(0.95, sum(rate(atlas_worker_job_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 duration"}]
+      }
+    ]
+  },
+  "overwrite": true
+}
