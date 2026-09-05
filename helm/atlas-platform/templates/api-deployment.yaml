@@ -29,6 +29,8 @@ spec:
               value: "redis"
             - name: REDIS_PORT
               value: "6379"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "{{ .Values.otel.endpoint }}"
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
           readinessProbe:

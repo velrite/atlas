@@ -49,3 +49,6 @@ worker:
       memory: 256Mi
   cpuMillicores: "1000"
   memoryMb: "512"
+
+otel:
+  endpoint: "http://otel-collector.otel.svc.cluster.local:4317"

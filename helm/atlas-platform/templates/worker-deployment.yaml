@@ -30,6 +30,8 @@ spec:
               value: "redis"
             - name: REDIS_PORT
               value: "6379"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "{{ .Values.otel.endpoint }}"
             - name: WORKER_CPU_MILLICORES
               value: "{{ .Values.worker.cpuMillicores }}"
             - name: WORKER_MEMORY_MB
