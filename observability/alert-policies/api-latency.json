@@ -1,0 +1,22 @@
+{
+  "displayName": "Atlas - API Latency SLO Breach",
+  "documentation": {
+    "content": "API p95 request latency has exceeded the 100ms SLO target defined in ADR-015.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "API p95 latency above 100ms",
+      "conditionPrometheusQueryLanguage": {
+        "query": "histogram_quantile(0.95, sum(rate(atlas_api_request_duration_seconds_bucket[10m])) by (le)) > 0.1",
+        "duration": "300s",
+        "evaluationInterval": "60s"
+      }
+    }
+  ],
+  "notificationChannels": ["projects/velrite-tf-test/notificationChannels/18150517277459920691"],
+  "alertStrategy": {
+    "autoClose": "3600s"
+  },
+  "combiner": "OR"
+}

@@ -1,0 +1,22 @@
+{
+  "displayName": "Atlas - Job Success Rate SLO Breach",
+  "documentation": {
+    "content": "Job success rate has dropped below the 99% SLO target defined in ADR-015.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "Job success rate below 99%",
+      "conditionPrometheusQueryLanguage": {
+        "query": "sum(rate(atlas_worker_jobs_executed_total{outcome=\"succeeded\"}[10m])) / sum(rate(atlas_worker_jobs_executed_total[10m])) < 0.99",
+        "duration": "300s",
+        "evaluationInterval": "60s"
+      }
+    }
+  ],
+  "notificationChannels": ["projects/velrite-tf-test/notificationChannels/18150517277459920691"],
+  "alertStrategy": {
+    "autoClose": "3600s"
+  },
+  "combiner": "OR"
+}

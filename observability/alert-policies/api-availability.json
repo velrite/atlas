@@ -1,0 +1,22 @@
+{
+  "displayName": "Atlas - API Availability SLO Breach",
+  "documentation": {
+    "content": "API success rate has dropped below the 99.5% SLO target defined in ADR-015.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "API success rate below 99.5%",
+      "conditionPrometheusQueryLanguage": {
+        "query": "sum(rate(atlas_api_requests_total{status=~\"2..\"}[10m])) / sum(rate(atlas_api_requests_total[10m])) < 0.995",
+        "duration": "300s",
+        "evaluationInterval": "60s"
+      }
+    }
+  ],
+  "notificationChannels": ["projects/velrite-tf-test/notificationChannels/18150517277459920691"],
+  "alertStrategy": {
+    "autoClose": "3600s"
+  },
+  "combiner": "OR"
+}

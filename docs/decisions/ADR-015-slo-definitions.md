@@ -1,9 +1,25 @@
 # ADR-015: SLI/SLO Definitions
 
 ## Status
-Proposed -- baseline data is real but low-volume (21 jobs). Targets
+Implemented. Baseline data is real but low-volume (21 jobs). Targets
 below are a reasonable starting point, not a statistically robust
 production baseline. Revisit once genuine traffic volume exists.
+
+Four Cloud Monitoring PromQL-based alert policies are live, wired to
+a real email notification channel, one per SLI defined below:
+- Atlas - API Availability SLO Breach
+- Atlas - API Latency SLO Breach
+- Atlas - Scheduling Latency SLO Breach
+- Atlas - Job Success Rate SLO Breach
+
+Each fires if its condition holds true for 5 continuous minutes,
+evaluated every 60s, auto-closing after 1h of no data. Policy
+definitions are version-controlled in observability/alert-policies/
+and were created via gcloud alpha monitoring policies create
+--policy-from-file (the direct AlertPolicy API with
+conditionPrometheusQueryLanguage -- not the in-cluster Rules CRD,
+which routes through a separate Alertmanager rather than Cloud
+Monitoring notification channels directly).
 
 ## Real baseline data (captured 2026-09-09, 21 test jobs, 1h window)
 
