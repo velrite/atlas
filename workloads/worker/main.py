@@ -98,6 +98,8 @@ def execute_job(job):
         logger.info(f"Executing job {job.job_id} (attempt {job.attempts})")
 
         try:
+            if not isinstance(job.payload, dict):
+                raise ValueError(f"payload must be a JSON object, got {type(job.payload).__name__}: {job.payload!r}")
             work_duration = min(job.payload.get("simulated_duration_seconds", 2), job.max_runtime_seconds)
             time.sleep(work_duration)
 
