@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis-ingress
+  namespace: atlas-platform
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: atlas-api
+        - podSelector:
+            matchLabels:
+              app: atlas-scheduler
+        - podSelector:
+            matchLabels:
+              app: atlas-worker
+      ports:
+        - protocol: TCP
+          port: 6379
