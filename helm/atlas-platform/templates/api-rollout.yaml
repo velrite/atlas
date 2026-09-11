@@ -1,5 +1,5 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: atlas-api
   namespace: {{ .Values.namespace }}
@@ -8,6 +8,9 @@ metadata:
     component: api
 spec:
   replicas: {{ .Values.api.replicas }}
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 120
+  progressDeadlineAbort: true
   selector:
     matchLabels:
       app: atlas-api
@@ -45,3 +48,15 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+  strategy:
+    canary:
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+        - setWeight: 10
+        - pause: {duration: 30s}
+        - setWeight: 25
+        - pause: {duration: 30s}
+        - setWeight: 50
+        - pause: {duration: 30s}
+        - setWeight: 100
