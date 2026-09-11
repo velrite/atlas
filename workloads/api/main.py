@@ -57,9 +57,6 @@ def health():
 
 @app.route("/ready", methods=["GET"])
 def ready():
-        # --- DELIBERATE BREAK: Phase 11 Step 6 rollback proof ---
-    return {'status': 'forced_failure_for_rollback_test'}, 500
-    # --- end deliberate break ---
     try:
         r.ping()
         return jsonify({"status": "ready"}), 200
