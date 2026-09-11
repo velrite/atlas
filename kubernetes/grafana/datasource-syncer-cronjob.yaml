@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: datasource-syncer
+  namespace: grafana
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata: {}
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - args:
+            - --grafana-api-endpoint=http://grafana.grafana.svc.cluster.local:3000
+            - --datasource-uids=c9f742d7-3d41-441e-9e31-91dcca5beae9
+            - --project-id=velrite-tf-test
+            - --grafana-api-token=$(GRAFANA_API_TOKEN)
+            env:
+            - name: GRAFANA_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: token
+                  name: datasource-syncer-token
+            image: gke.gcr.io/prometheus-engine/datasource-syncer:v0.17.2-gke.2
+            imagePullPolicy: IfNotPresent
+            name: datasource-syncer
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: datasource-syncer-ksa
+          serviceAccountName: datasource-syncer-ksa
+          terminationGracePeriodSeconds: 30
+  schedule: '*/10 * * * *'
+  successfulJobsHistoryLimit: 3
+  suspend: false
+
