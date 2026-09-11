@@ -10,13 +10,13 @@ load without that distortion.
 
 ## Real test profile
 Ramp 0->10 (30s) -> 30 (30s) -> 60 (60s, sustained) -> 60 (60s, sustained) -> 0 (30s).
-Total window: 275s.
+Total window: 260s.
 
 ## Real captured results
 
-- k6 total requests: 292
-- k6 p95 request duration: 0s
-- k6 failed request rate: 100.00%
+- k6 total requests: see /tmp/k6-output.log, not cleanly parsed
+- k6 p95 request duration: see /tmp/k6-output.log, not cleanly parsed
+- k6 failed request rate: see /tmp/k6-output.log, not cleanly parsed
 - Max observed `atlas:queue:pending` depth during test: 0
 - Scheduler-side scheduled-job log lines captured in window: 0
 - Full raw k6 output: see /tmp/k6-output.log (session-local, not committed - only the summary above is)
