@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged-containers
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: privileged-containers-disallowed
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - atlas-platform
+      validate:
+        message: "Privileged containers are not allowed."
+        pattern:
+          spec:
+            =(securityContext):
+              =(privileged): "false"
+            containers:
+              - name: "*"
+                =(securityContext):
+                  =(privileged): "false"

@@ -1,0 +1,22 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - atlas-platform
+      validate:
+        message: "Images must not use the ':latest' tag or be untagged; use an explicit SHA/version tag."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
