@@ -1,3 +1,4 @@
+# trivial comment change to trigger Phase 11 canary promotion proof - 2026-09-11T00:34:30Z
 """
 Atlas API -- accepts job submissions, pushes them to the Redis queue,
 returns the job ID immediately (async, non-blocking).
