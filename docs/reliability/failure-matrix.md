@@ -10,8 +10,8 @@ See each linked file for full hypothesis/injection/evidence detail.
 - `docs/incidents/INCIDENT-002-node-pool-image-pull-and-quota.md` or `chaos/INCIDENT-002-node-pool-image-pull-and-quota.md` - INCIDENT-002: First GKE Deployment - Image Pull Authorization and Regional Disk Quota
 - `docs/incidents/INCIDENT-003-node-pool-upgrade-pdb-stall.md` or `chaos/INCIDENT-003-node-pool-upgrade-pdb-stall.md` - INCIDENT-003: Node Pool Machine Type Upgrade Stalled by PodDisruptionBudget
 - `docs/incidents/INCIDENT-004-setuptools-pkg-resources.md` or `chaos/INCIDENT-004-setuptools-pkg-resources.md` - INCIDENT-004: pkg_resources removed from setuptools 82+
-- `docs/incidents/INCIDENT-005-gitops-sync-race-and-rollback-proof.md` or `chaos/INCIDENT-005-gitops-sync-race-and-rollback-proof.md` - INCIDENT-005: GitLab-to-GitHub Sync Race Condition + Argo Rollouts Rollback Proof
-- `docs/incidents/INCIDENT-005-rollback-test-tooling-and-result.md` or `chaos/INCIDENT-005-rollback-test-tooling-and-result.md` - INCIDENT-005: Phase 11 Rollback Test - Tooling Failures and Real Result
+- `docs/incidents/INCIDENT-006-gitops-sync-race-and-rollback-proof.md` or `chaos/INCIDENT-006-gitops-sync-race-and-rollback-proof.md` - INCIDENT-006: GitLab-to-GitHub Sync Race Condition + Argo Rollouts Rollback Proof
+- `docs/incidents/INCIDENT-006-rollback-test-tooling-and-result.md` or `chaos/INCIDENT-006-rollback-test-tooling-and-result.md` - INCIDENT-006: Phase 11 Rollback Test - Tooling Failures and Real Result
 - `docs/incidents/experiment-001-pod-failure-atlas-api.md` or `chaos/experiment-001-pod-failure-atlas-api.md` - Chaos Experiment 001: atlas-api Pod Failure
 - `docs/incidents/experiment-002-node-drain.md` or `chaos/experiment-002-node-drain.md` - Chaos Experiment 002: GKE Node Cordon + Drain
 - `docs/incidents/experiment-003-redis-dependency-down.md` or `chaos/experiment-003-redis-dependency-down.md` - Chaos Experiment 003: Redis Dependency-Down
@@ -184,9 +184,9 @@ Secondary issues hit while resolving: GitLab/GitHub remotes diverged after a Clo
 Lesson: an unbounded >= pin on a transitive runtime dependency can silently drift to a version that removed the thing being depended on. Verify the actual installed version inside the real container, not just that a requirements line exists.
 ```
 
-### Source: docs/incidents/INCIDENT-005-gitops-sync-race-and-rollback-proof.md
+### Source: docs/incidents/INCIDENT-006-gitops-sync-race-and-rollback-proof.md
 ```
-# INCIDENT-005: GitLab-to-GitHub Sync Race Condition + Argo Rollouts Rollback Proof
+# INCIDENT-006: GitLab-to-GitHub Sync Race Condition + Argo Rollouts Rollback Proof
 
 ## Summary
 Two related real issues surfaced during Phase 11 Step 6 evidence capture:
@@ -256,9 +256,9 @@ zero observed customer-facing impact (stable ReplicaSet never lost
 availability).
 ```
 
-### Source: docs/incidents/INCIDENT-005-rollback-test-tooling-and-result.md
+### Source: docs/incidents/INCIDENT-006-rollback-test-tooling-and-result.md
 ```
-# INCIDENT-005: Phase 11 Rollback Test - Tooling Failures and Real Result
+# INCIDENT-006: Phase 11 Rollback Test - Tooling Failures and Real Result
 
 ## Summary
 Multiple real tooling failures were hit while attempting to trigger and

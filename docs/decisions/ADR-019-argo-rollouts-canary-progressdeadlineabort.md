@@ -1,4 +1,4 @@
-# ADR-016: Argo Rollouts Canary Strategy + progressDeadlineAbort for Automated Rollback
+# ADR-019: Argo Rollouts Canary Strategy + progressDeadlineAbort for Automated Rollback
 
 ## Status
 Accepted
@@ -42,4 +42,4 @@ stable - zero external metrics infrastructure required.
   `us-central1-docker.pkg.dev/velrite-tf-test/atlas-images/atlas-api:615f63af`
   was patched directly into the Rollout with auto-sync disabled. Final
   observed Rollout phase: **Degraded**. Detection-to-abort
-  latency: **125 seconds** (see INCIDENT-005 for full detail).
+  latency: **125 seconds** (see INCIDENT-006 for full detail).

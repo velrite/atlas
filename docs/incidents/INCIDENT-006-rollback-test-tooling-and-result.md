@@ -1,4 +1,4 @@
-# INCIDENT-005: Phase 11 Rollback Test - Tooling Failures and Real Result
+# INCIDENT-006: Phase 11 Rollback Test - Tooling Failures and Real Result
 
 ## Summary
 Multiple real tooling failures were hit while attempting to trigger and

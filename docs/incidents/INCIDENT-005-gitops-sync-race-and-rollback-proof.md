@@ -1,4 +1,4 @@
-# INCIDENT-005: GitLab-to-GitHub Sync Race Condition + Argo Rollouts Rollback Proof
+# INCIDENT-006: GitLab-to-GitHub Sync Race Condition + Argo Rollouts Rollback Proof
 
 ## Summary
 Two related real issues surfaced during Phase 11 Step 6 evidence capture:

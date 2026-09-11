@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-Phase 2 requires a real GKE cluster to build and test the core workload platform against, before multi-region work begins in Phase 13 per ADR-001. A concrete decision was needed on cluster mode, node sizing, and node pricing model.
+Phase 2 requires a real GKE cluster to build and test the core workload platform against, before multi-region work begins in Phase 13 per ADR-018. A concrete decision was needed on cluster mode, node sizing, and node pricing model.
 
 ## Problem
 What is the cheapest cluster configuration that still exercises genuine GKE primitives (RBAC, Workload Identity, NetworkPolicy, node pools) needed by later phases, without over-provisioning for a cluster that initially runs no real workload.

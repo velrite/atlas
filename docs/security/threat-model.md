@@ -34,7 +34,7 @@
 - Keyless CI-to-GCP push via Workload Identity Federation
 - Image scanning (Trivy) and SAST (Bandit) in CI, non-blocking
 - GitOps with Argo CD selfHeal (drift reconciliation proven, see docs/reliability/)
-- Argo Rollouts automatic rollback on readiness failure (ADR-016, INCIDENT-005)
+- Argo Rollouts automatic rollback on readiness failure (ADR-019, INCIDENT-006)
 
 ## Controls Added This Phase
 - Default-deny NetworkPolicy in atlas-platform, with explicit least-privilege allows

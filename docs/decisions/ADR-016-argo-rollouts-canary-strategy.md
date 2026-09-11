@@ -1,4 +1,4 @@
-# ADR-016: Argo Rollouts Canary Strategy + progressDeadlineAbort for Automatic Rollback
+# ADR-019: Argo Rollouts Canary Strategy + progressDeadlineAbort for Automatic Rollback
 
 ## Status
 Accepted, implemented, verified (Phase 11)
@@ -43,7 +43,7 @@ setWeight 50 -> pause 30s -> setWeight 100. progressDeadlineSeconds: 120.
   flagged as removable if minimizing surface area becomes a priority.
 
 ## Evidence
-Real deliberate-break test (Phase 11 Step 6, see INCIDENT-005): a genuine
+Real deliberate-break test (Phase 11 Step 6, see INCIDENT-006): a genuine
 500-returning /ready endpoint was shipped through the full CI/CD pipeline.
 Argo Rollouts detected the canary ReplicaSet's readiness failure, waited out
 progressDeadlineSeconds, and automatically aborted -- measured

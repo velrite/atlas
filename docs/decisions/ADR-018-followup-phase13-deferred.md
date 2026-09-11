@@ -1,11 +1,11 @@
-# ADR-001 Follow-Up: Multi-Region Expansion (Phase 13) Deliberately Deferred
+# ADR-018 Follow-Up: Multi-Region Expansion (Phase 13) Deliberately Deferred
 
 ## Status
 Deferred by deliberate scope decision. Not implemented. This is a
 documented engineering trade-off, not an oversight or a skipped step.
 
 ## Context
-ADR-001 committed to an active/active, two-region GKE topology behind a
+ADR-018 committed to an active/active, two-region GKE topology behind a
 Global External HTTPS Load Balancer, with the queue's cross-region
 architecture explicitly left open pending real implementation experience.
 By Phase 12, Atlas had already produced real, evidenced work across
@@ -44,7 +44,7 @@ default answer:
 - **Redis cross-region replication** gets closest to true active/active
   but introduces real operational complexity (replication lag, split-brain
   handling, failover orchestration) disproportionate to a project whose
-  explicit goal from ADR-001 onward has been single-region-first for cost,
+  explicit goal from ADR-018 onward has been single-region-first for cost,
   with multi-region deferred until it could be done for a real reason.
 
 Building the topology (two clusters + LB) without resolving this
@@ -56,7 +56,7 @@ to dig into real root causes rather than accept a shallow "it works").
 
 ## Decision
 Defer Phase 13 implementation. Keep the architecture decision fully
-documented (this file + ADR-001) so the reasoning is auditable, rather
+documented (this file + ADR-018) so the reasoning is auditable, rather
 than silently dropping the phase or building a hollow version of it.
 
 ## If this were built, here is exactly how (kept precise, not vague)
@@ -85,7 +85,7 @@ than silently dropping the phase or building a hollow version of it.
    does not claim to simulate an actual GCP regional outage) and measure
    real RTO/RPO with real timestamps, following the same
    hypothesis-then-inject-then-measure discipline used throughout.
-6. Update ADR-001's status and document what was actually built vs. what
+6. Update ADR-018's status and document what was actually built vs. what
    was originally planned, since implementation always reveals things a
    pre-implementation ADR can't know -- consistent with how every other
    ADR in this project has been treated.

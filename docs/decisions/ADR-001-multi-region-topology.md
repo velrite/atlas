@@ -1,4 +1,4 @@
-# ADR-001: Two Independent Regional GKE Clusters, Active/Active
+# ADR-018: Two Independent Regional GKE Clusters, Active/Active
 
 ## Status
 Accepted

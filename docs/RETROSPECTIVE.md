@@ -14,8 +14,8 @@ Commit -> GitLab CI (test/lint/sast/scan/build/push) -> gitops-update bot
 commit bumps helm/atlas-platform/values.yaml image tag -> synced to GitHub
 -> Argo CD (automated, selfHeal+prune) reconciles the cluster -> for
 atlas-api specifically, Argo Rollouts executes the canary strategy defined
-in ADR-016 (10/25/50/100 steps with progressDeadlineAbort for automatic
-rollback - real, measured abort latency: 125 seconds, see INCIDENT-005).
+in ADR-019 (10/25/50/100 steps with progressDeadlineAbort for automatic
+rollback - real, measured abort latency: 125 seconds, see INCIDENT-006).
 
 ## Known, honestly-stated limitations (not hidden)
 - Redis: single instance, no clustering, accepted SPOF per ADR-005 -
@@ -23,7 +23,7 @@ rollback - real, measured abort latency: 125 seconds, see INCIDENT-005).
   (see chaos/experiment-003 or equivalent Redis dependency-down doc if
   present in the incident/chaos inventory above).
 - GitOps hand-off (CI -> values.yaml bump -> deploy) has shown real latency
-  variance across this project's own testing - see INCIDENT-005's timeline
+  variance across this project's own testing - see INCIDENT-006's timeline
   of failed attempts before a working direct-injection method was found.
 - Direct kubectl-level changes to GitOps-managed CRDs require temporarily
   disabling Argo CD's syncPolicy or selfHeal will revert them - documented
@@ -31,7 +31,7 @@ rollback - real, measured abort latency: 125 seconds, see INCIDENT-005).
 
 ## What would change for real production
 - Redis SPOF would need either managed Pub/Sub or a replicated queue
-  (deferred decision, see ADR-001 and Phase 13 deferral note in git log).
+  (deferred decision, see ADR-018 and Phase 13 deferral note in git log).
 - The one static credential in this project (GITHUB_PUSH_TOKEN, ADR-011)
   would need a true OIDC federation path once GitLab-to-GitHub federation
   becomes available, removing the last stored secret.
