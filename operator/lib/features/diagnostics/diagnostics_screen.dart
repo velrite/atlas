@@ -16,7 +16,7 @@ class DiagnosticsScreen extends StatelessWidget {
       ),
       body: const Center(
         child: Text(
-          'UNKNOWN — Phase 3 wires real offline fixtures here.',
+          'UNKNOWN — Phase 4 wires real diagnostic operations here.',
           textAlign: TextAlign.center,
         ),
       ),

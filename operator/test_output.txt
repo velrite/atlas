@@ -1,4 +1,20 @@
-00:00 +0: loading /home/velrite_tech/atlas/operator/test/root_shell_test.dart
-00:00 +0: RootShell renders with default OFFLINE environment
-00:01 +1: environmentProvider defaults to offline
-00:01 +2: All tests passed!
+Resolving dependencies...
+Downloading packages...
+  code_assets 1.2.1 (2.1.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.2 available)
+Got dependencies!
+8 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/velrite_tech/atlas/operator/test/fixtures_test.dart
+00:00 +0: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: healthy components fixture: 4 records, all healthy
+00:00 +1: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: degraded components fixture: exactly one degraded, and it is the worker
+00:00 +2: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: degraded deployments fixture: last deployment differs from last known good
+00:00 +3: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: RootShell renders with default OFFLINE environment
+00:01 +4: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: environmentProvider defaults to offline
+00:01 +5: All tests passed!

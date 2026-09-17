@@ -1,0 +1,5 @@
+[
+  {"revisionIndex":28,"imageTag":"5e6f7a8b","rolloutPhase":"Degraded","currentStepIndex":2,"gitCommit":"5e6f7a8b","sourceOfTruth":"kubeApi"},
+  {"revisionIndex":27,"imageTag":"a1b2c3d4","rolloutPhase":"Healthy","currentStepIndex":null,"gitCommit":"a1b2c3d4","sourceOfTruth":"kubeApi"},
+  {"revisionIndex":26,"imageTag":"9f8e7d6c","rolloutPhase":"Healthy","currentStepIndex":null,"gitCommit":"9f8e7d6c","sourceOfTruth":"git"}
+]

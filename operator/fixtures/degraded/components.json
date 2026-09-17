@@ -1,0 +1,6 @@
+[
+  {"component":"api","status":"healthy","source":"httpHealthCheck","asOf":"2026-09-17T10:00:00Z","detail":"/health and /ready both returning 200"},
+  {"component":"scheduler","status":"healthy","source":"metricsInferred","asOf":"2026-09-17T10:00:00Z","detail":"scheduling still nominal"},
+  {"component":"worker","status":"degraded","source":"metricsInferred","asOf":"2026-09-17T10:00:00Z","detail":"Worker CPU 94%, requeue rate +418% — capacity saturation"},
+  {"component":"redis","status":"healthy","source":"podStatus","asOf":"2026-09-17T10:00:00Z","detail":"pod Running, 0 restarts"}
+]
