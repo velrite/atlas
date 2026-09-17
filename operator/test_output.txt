@@ -1,0 +1,4 @@
+00:00 +0: loading /home/velrite_tech/atlas/operator/test/root_shell_test.dart
+00:00 +0: RootShell renders with default OFFLINE environment
+00:01 +1: environmentProvider defaults to offline
+00:01 +2: All tests passed!
