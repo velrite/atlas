@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/widgets/environment_badge.dart';
+import '../workloads/workloads_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -15,12 +16,20 @@ class MoreScreen extends StatelessWidget {
         )],
       ),
       body: ListView(
-        children: const [
-          ListTile(title: Text('Workloads'), subtitle: Text('Phase 3+')),
-          ListTile(title: Text('Observability'), subtitle: Text('Phase 3+')),
-          ListTile(title: Text('Incidents'), subtitle: Text('Phase 3+')),
-          ListTile(title: Text('Audit'), subtitle: Text('Phase 7+')),
-          ListTile(title: Text('Settings'), subtitle: Text('Phase 2')),
+        children: [
+          ListTile(
+            title: const Text('Workloads'),
+            subtitle: const Text('Recent jobs'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const WorkloadsScreen()),
+            ),
+          ),
+          const ListTile(title: Text('Observability'), subtitle: Text('Phase 4 — not yet wired')),
+          const ListTile(title: Text('Reliability'), subtitle: Text('Phase 4 — not yet wired')),
+          const ListTile(title: Text('Incidents'), subtitle: Text('Phase 4 — not yet wired')),
+          const ListTile(title: Text('Audit'), subtitle: Text('Phase 7+')),
+          const ListTile(title: Text('Settings'), subtitle: Text('Phase 2')),
         ],
       ),
     );

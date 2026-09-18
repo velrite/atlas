@@ -16,5 +16,6 @@ Try `flutter pub outdated` for more information.
 00:00 +1: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: degraded components fixture: exactly one degraded, and it is the worker
 00:00 +2: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: degraded deployments fixture: last deployment differs from last known good
 00:00 +3: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: RootShell renders with default OFFLINE environment
-00:01 +4: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: environmentProvider defaults to offline
-00:01 +5: All tests passed!
+00:01 +4: /home/velrite_tech/atlas/operator/test/workloads_screen_test.dart: WorkloadsScreen shows real fixture job IDs
+00:01 +5: /home/velrite_tech/atlas/operator/test/workloads_screen_test.dart: WorkloadsScreen shows real fixture job IDs
+00:02 +6: All tests passed!
