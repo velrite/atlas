@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: operations-api-egress
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: operations-api
+  policyTypes:
+    - Egress
+  egress:
+    # DNS — nothing resolves without this, including the two rules below.
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Kubernetes API server — needed for kubectl calls in Chunk 2
+    # (Rollout status, Argo Application state, job records).
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
