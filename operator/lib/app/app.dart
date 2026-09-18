@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'root_shell.dart';
+import 'splash_screen.dart';
 
 class AtlasOperatorApp extends StatelessWidget {
   const AtlasOperatorApp({super.key});
@@ -10,10 +10,10 @@ class AtlasOperatorApp extends StatelessWidget {
       title: 'Atlas Operator',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF2C3E63), // deep slate blue, per visual-system.md
+        colorSchemeSeed: const Color(0xFF2F6FED), // real brand electric blue now
         useMaterial3: true,
       ),
-      home: const RootShell(),
+      home: const SplashScreen(),
     );
   }
 }

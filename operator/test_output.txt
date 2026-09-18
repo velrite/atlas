@@ -1,5 +1,6 @@
 Resolving dependencies...
 Downloading packages...
+  cli_util 0.4.2 (0.6.0 available)
   code_assets 1.2.1 (2.1.0 available)
   hooks 2.0.2 (2.2.0 available)
   material_color_utilities 0.13.0 (0.13.1 available)
@@ -9,17 +10,26 @@ Downloading packages...
   test_api 0.7.12 (0.7.14 available)
   vector_math 2.4.0 (2.4.2 available)
 Got dependencies!
-8 packages have newer versions incompatible with dependency constraints.
+9 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-00:00 +0: loading /home/velrite_tech/atlas/operator/test/fixtures_test.dart
-00:00 +0: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: healthy components fixture: 4 records, all healthy
-00:00 +1: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: degraded components fixture: exactly one degraded, and it is the worker
-00:00 +2: /home/velrite_tech/atlas/operator/test/fixtures_test.dart: degraded deployments fixture: last deployment differs from last known good
-00:00 +3: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: RootShell renders with default OFFLINE environment
-00:01 +4: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
-00:01 +5: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
-00:02 +6: /home/velrite_tech/atlas/operator/test/operational_reasoning_test.dart: findPrimaryIssue returns null when nothing is degraded
-00:02 +7: /home/velrite_tech/atlas/operator/test/operational_reasoning_test.dart: findPrimaryIssue surfaces the degraded worker
-00:03 +8: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
-00:04 +9: /home/velrite_tech/atlas/operator/test/workloads_screen_test.dart: WorkloadsScreen shows real fixture job IDs
-00:04 +10: All tests passed!
+00:00 +0: loading /home/velrite_tech/atlas/operator/test/splash_screen_test.dart
+00:00 +0: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
+00:00 +1: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
+00:00 +2: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
+00:00 +3: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
+ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
+00:01 +4: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: RootShell renders with default OFFLINE environment
+ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
+00:02 +5: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: environmentProvider defaults to offline
+00:02 +6: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
+00:03 +7: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
+00:03 +8: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
+ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
+ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
+00:05 +9: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: writeAll evicts oldest entries beyond maxEntries
+00:05 +10: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: data survives a simulated app restart (box closed and reopened)
+00:05 +11: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: sync timestamp is recorded and readable per domain
+00:05 +12: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
+00:06 +13: /home/velrite_tech/atlas/operator/test/workloads_screen_test.dart: WorkloadsScreen shows real fixture job IDs
+Jobs cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
+00:07 +14: All tests passed!
