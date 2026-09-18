@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/widgets/environment_badge.dart';
 import '../../shared/models/component_health.dart';
+import '../../shared/utilities/operational_reasoning.dart';
 import '../../core/errors/operational_state.dart' as ops;
 import '../../app/scenario.dart';
+import '../diagnostics/diagnostics_screen.dart';
 import 'overview_providers.dart';
 
 class OverviewScreen extends ConsumerWidget {
@@ -50,27 +52,65 @@ class OverviewScreen extends ConsumerWidget {
           ops.Loading() => const Center(child: CircularProgressIndicator()),
           ops.Empty() => const Center(child: Text('No component health data.')),
           ops.Error(:final reason) => Center(child: Text('Error: $reason')),
-          ops.Data(:final value, :final asOf) => ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(
-                  'OFFLINE CACHE • as of ${asOf.toIso8601String()}',
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-                const SizedBox(height: 12),
-                ...value.map((c) => Card(
-                      child: ListTile(
-                        leading: Icon(Icons.circle, color: _statusColor(c.status), size: 14),
-                        title: Text(c.component.name.toUpperCase()),
-                        subtitle: Text(
-                            '${_sourceLabel(c.source)}${c.detail != null ? ' — ${c.detail}' : ''}'),
-                        trailing: Text(c.status.name.toUpperCase()),
-                      ),
-                    )),
-              ],
-            ),
+          ops.Data(:final value, :final asOf) => _buildBody(context, value, asOf),
         },
       ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, List<ComponentHealth> value, DateTime asOf) {
+    final issue = findPrimaryIssue(value);
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'OFFLINE CACHE • as of ${asOf.toIso8601String()}',
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+        const SizedBox(height: 12),
+        if (issue != null) ...[
+          Card(
+            color: Colors.amber.withValues(alpha: 0.1),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.warning_amber_outlined, color: Colors.amber),
+                      const SizedBox(width: 8),
+                      Text('Primary issue',
+                          style: Theme.of(context).textTheme.labelLarge),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text('${issue.component.name.toUpperCase()}: ${issue.detail}'),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.monitor_heart_outlined),
+                    label: Text('Run ${issue.recommendedDiagnostic} Diagnostic'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const DiagnosticsScreen()),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        ...value.map((c) => Card(
+              child: ListTile(
+                leading: Icon(Icons.circle, color: _statusColor(c.status), size: 14),
+                title: Text(c.component.name.toUpperCase()),
+                subtitle: Text(
+                    '${_sourceLabel(c.source)}${c.detail != null ? ' — ${c.detail}' : ''}'),
+                trailing: Text(c.status.name.toUpperCase()),
+              ),
+            )),
+      ],
     );
   }
 }
