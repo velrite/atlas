@@ -13,4 +13,4 @@ Got dependencies!
 9 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Analyzing operator...                                           
-No issues found! (ran in 1.2s)
+No issues found! (ran in 1.3s)

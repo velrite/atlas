@@ -27,8 +27,9 @@ ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to
 00:05 +8: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
 ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
 ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
-00:06 +9: /home/velrite_tech/atlas/operator/test/operational_reasoning_test.dart: findPrimaryIssue returns null when nothing is degraded
-00:06 +10: /home/velrite_tech/atlas/operator/test/operational_reasoning_test.dart: findPrimaryIssue surfaces the degraded worker
+00:06 +9: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
+00:06 +10: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
+00:06 +11: loading /home/velrite_tech/atlas/operator/test/capped_cache_test.dart
 00:07 +11: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: writeAll evicts oldest entries beyond maxEntries
 00:07 +12: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: data survives a simulated app restart (box closed and reopened)
 00:07 +13: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: sync timestamp is recorded and readable per domain
