@@ -17,8 +17,8 @@ Try `flutter pub outdated` for more information.
 00:00 +1: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
 00:00 +2: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
 00:00 +3: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
-ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
 00:01 +4: /home/velrite_tech/atlas/operator/test/splash_screen_test.dart: SplashScreen shows wordmark, then navigates to RootShell
+ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
 00:01 +5: /home/velrite_tech/atlas/operator/test/audit_log_repository_test.dart: audit log caps at maxEntries, keeping most recent
 00:04 +5: /home/velrite_tech/atlas/operator/test/root_shell_test.dart: RootShell renders with default OFFLINE environment
 ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
@@ -26,21 +26,21 @@ ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to
 00:04 +7: /home/velrite_tech/atlas/operator/test/audit_log_repository_test.dart: audit log caps at maxEntries, keeping most recent
 00:05 +8: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
 ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
-ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
 00:06 +9: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
 00:06 +10: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: OverviewScreen shows Primary issue card only in degraded scenario
-00:06 +11: loading /home/velrite_tech/atlas/operator/test/capped_cache_test.dart
-00:07 +11: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: writeAll evicts oldest entries beyond maxEntries
-00:07 +12: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: data survives a simulated app restart (box closed and reopened)
-00:07 +13: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: sync timestamp is recorded and readable per domain
-00:07 +14: /home/velrite_tech/atlas/operator/test/connection/connection_provider_test.dart: stays Unknown in OFFLINE mode, never calls the network
-00:07 +15: /home/velrite_tech/atlas/operator/test/connection/connection_provider_test.dart: reports Healthy when both checks succeed in INTEGRATION mode
-00:07 +16: /home/velrite_tech/atlas/operator/test/connection/connection_provider_test.dart: reports Failed honestly when the real call fails, does not throw
-00:08 +17: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
+ComponentHealth cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
+00:06 +11: /home/velrite_tech/atlas/operator/test/overview_screen_test.dart: Connection banner is hidden in OFFLINE, shown in INTEGRATION
+00:07 +12: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: writeAll evicts oldest entries beyond maxEntries
+00:07 +13: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: data survives a simulated app restart (box closed and reopened)
+00:07 +14: /home/velrite_tech/atlas/operator/test/capped_cache_test.dart: sync timestamp is recorded and readable per domain
+00:07 +15: /home/velrite_tech/atlas/operator/test/connection/connection_provider_test.dart: stays Unknown in OFFLINE mode, never calls the network
+00:07 +16: /home/velrite_tech/atlas/operator/test/connection/connection_provider_test.dart: reports Healthy when both checks succeed in INTEGRATION mode
+00:07 +17: /home/velrite_tech/atlas/operator/test/connection/connection_provider_test.dart: reports Failed honestly when the real call fails, does not throw
 00:08 +18: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
 00:08 +19: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
 00:08 +20: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
+00:08 +21: /home/velrite_tech/atlas/operator/test/diagnostics_screen_test.dart: DiagnosticsScreen runs check and shows OK result on healthy scenario
 Audit log write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
-00:09 +21: /home/velrite_tech/atlas/operator/test/workloads_screen_test.dart: WorkloadsScreen shows real fixture job IDs
+00:09 +22: /home/velrite_tech/atlas/operator/test/workloads_screen_test.dart: WorkloadsScreen shows real fixture job IDs
 Jobs cache write skipped: HiveError: Box not found. Did you forget to call Hive.openBox()?
-00:10 +22: All tests passed!
+00:10 +23: All tests passed!
