@@ -1,0 +1,11 @@
+# Technical Debt
+
+| Item | Current state | Risk | Why it exists | Recommended remediation |
+|---|---|---|---|---|
+| `redis` has no PVC | Job data lost silently on pod replacement | Data loss with no error surfaced | Original scope prioritized functional flow over persistence | Add a PVC or move to a managed queue |
+| Grafana has no PVC | GMP datasource token wiped on pod reschedule (happened twice) | Manual recovery required each time | Same as above | Add a PVC, or move dashboard provisioning to code/config instead of stateful UI setup |
+| Atlas API has zero auth | Any caller on the network can hit it | No access control beyond NetworkPolicy | Backend auth was out of scope for the phases delivered so far | Add real authentication before any wider network exposure |
+| `operations-api` has no auth/TLS | Same as above, briefly worsened by ADR-003's temporary public exposure | Same as above | Phase 8 delivered the minimum viable backend for Phase 9 testing | Add auth + TLS before treating this as anything beyond a dev/test backend |
+| `startup.sh` CRD-ordering fix unverified end-to-end | Fix is merged and syntax-checked, but no full fresh run has exercised it | Could still fail differently than expected on a truly fresh environment | Time constraints during this session | Run one full fresh `startup.sh` end-to-end and record the result |
+| `gitops-update` race with manual pushes | Known, documented, not automated away | Occasional merge-conflict pipeline failures | The sync script already retries once; a second layer (e.g. a merge lock) was not built | Add a simple lock/queue around `main` pushes, or restrict manual pushes during active pipelines |
+| Real-device Phase 9 verification | In progress at time of writing | Phase 9 could be marked "done" prematurely | Real-device testing required infra not built for it (see ADR-003) | Confirm actual on-device banner state, then decide whether the temporary LoadBalancer approach should become a permanent, secured Ingress |
