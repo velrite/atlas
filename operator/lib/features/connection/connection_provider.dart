@@ -4,13 +4,15 @@ import '../../core/network/connection_status.dart';
 import '../../core/configuration/environment.dart';
 
 final operationsApiClientProvider = Provider<OperationsApiClient>((ref) {
-  return OperationsApiClient();
+  // TEMP for real-device test (Phase 9 device verification):
+  // pointed at the real LoadBalancer external IP so a physical phone
+  // can reach it over the internet, since Cloud Shell's port-forward
+  // only binds to Cloud Shell's own localhost. Revert to
+  // http://localhost:8080 + kubectl port-forward once this test is done
+  // and the LoadBalancer Service is torn down.
+  return OperationsApiClient(baseUrl: 'http://34.10.76.39');
 });
 
-/// Only meaningful in INTEGRATION mode. OFFLINE has nothing to check
-/// (by design, no backend exists to it). LIVE isn't wired to anything
-/// real yet either — Phase 9 is specifically the INTEGRATION handshake,
-/// not a claim that LIVE mode does anything today.
 class ConnectionNotifier extends AsyncNotifier<ConnectionStatus> {
   @override
   Future<ConnectionStatus> build() async => const ConnectionUnknown();
@@ -24,17 +26,11 @@ class ConnectionNotifier extends AsyncNotifier<ConnectionStatus> {
 
     state = const AsyncData(ConnectionChecking());
     final client = ref.read(operationsApiClientProvider);
-
     try {
       await client.checkHealth();
       await client.checkReady();
       state = AsyncData(ConnectionHealthy(DateTime.now()));
     } catch (e) {
-      // Caught here, not left to throw up into the UI, because a
-      // failed real connection is an expected, displayable state in
-      // INTEGRATION mode — not a crash. Same "swallow and surface
-      // honestly" pattern as the offline repositories, applied to a
-      // network failure instead of a cache failure.
       state = AsyncData(ConnectionFailed(e.toString(), DateTime.now()));
     }
   }

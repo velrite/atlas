@@ -7,7 +7,6 @@ plugins {
 android {
     namespace = "com.velrite.atlas_operator"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
