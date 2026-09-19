@@ -41,6 +41,46 @@ if [ "$CTX" != "$EXPECTED" ]; then
 fi
 echo "Context confirmed: $CTX"
 
+# --- Argo Rollouts CRDs + controller (moved from end of script) ---
+# MUST run before step 4: Helm's atlas-platform chart creates a
+# 'kind: Rollout' object, which only exists as a valid Kubernetes
+# type once these CRDs are installed. Running this after step 4
+# (the old order) meant the Rollout object silently sat un-reconciled
+# until someone noticed and installed the CRDs by hand -- exactly
+# what happened in this session before the bug was found.
+# Plain "kubectl apply -f" on the install manifest fails silently on the large
+# embedded CRDs (rollouts.argoproj.io, analysisruns.argoproj.io) with
+# "annotations: Too long" while the controller Deployment/RBAC apply fine --
+# a misleadingly "healthy-looking" but actually broken install.
+# --server-side --force-conflicts avoids the client-side annotation-size limit.
+kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply --server-side --force-conflicts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+kubectl wait --for=condition=available --timeout=120s deployment/argo-rollouts -n argo-rollouts
+
+# Workload Identity binding for atlas-rollouts-metrics GSA.
+# Currently unused (final design uses progressDeadlineAbort, not a Prometheus
+# AnalysisTemplate, since Argo Rollouts' Prometheus provider doesn't support
+# GCP Workload Identity) -- captured here so full recovery stays automated.
+gcloud iam service-accounts create atlas-rollouts-metrics \
+  --project=velrite-tf-test \
+  --display-name="Argo Rollouts metrics reader (reserved, unused)" \
+  2>/dev/null || echo "atlas-rollouts-metrics GSA already exists, continuing"
+
+gcloud projects add-iam-policy-binding velrite-tf-test \
+  --member="serviceAccount:atlas-rollouts-metrics@velrite-tf-test.iam.gserviceaccount.com" \
+  --role="roles/monitoring.viewer" \
+  --condition=None
+
+gcloud iam service-accounts add-iam-policy-binding \
+  atlas-rollouts-metrics@velrite-tf-test.iam.gserviceaccount.com \
+  --project=velrite-tf-test \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="serviceAccount:velrite-tf-test.svc.id.goog[argo-rollouts/argo-rollouts]"
+
+kubectl annotate serviceaccount argo-rollouts -n argo-rollouts \
+  iam.gke.io/gcp-service-account=atlas-rollouts-metrics@velrite-tf-test.iam.gserviceaccount.com \
+  --overwrite
+# --- end Argo Rollouts CRDs + controller ---
 echo "### 4. RBAC + Workload Identity KSA + Helm platform deploy ###"
 kubectl create namespace atlas-platform --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$REPO_DIR/kubernetes/rbac/"
@@ -255,37 +295,3 @@ kubectl get pods -n argocd
 kubectl get pods -n grafana
 kubectl get pods -n otel
 
-# --- Argo Rollouts (Phase 11) ---
-# Plain "kubectl apply -f" on the install manifest fails silently on the large
-# embedded CRDs (rollouts.argoproj.io, analysisruns.argoproj.io) with
-# "annotations: Too long" while the controller Deployment/RBAC apply fine --
-# a misleadingly "healthy-looking" but actually broken install.
-# --server-side --force-conflicts avoids the client-side annotation-size limit.
-kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply --server-side --force-conflicts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
-kubectl wait --for=condition=available --timeout=120s deployment/argo-rollouts -n argo-rollouts
-
-# Workload Identity binding for atlas-rollouts-metrics GSA.
-# Currently unused (final design uses progressDeadlineAbort, not a Prometheus
-# AnalysisTemplate, since Argo Rollouts' Prometheus provider doesn't support
-# GCP Workload Identity) -- captured here so full recovery stays automated.
-gcloud iam service-accounts create atlas-rollouts-metrics \
-  --project=velrite-tf-test \
-  --display-name="Argo Rollouts metrics reader (reserved, unused)" \
-  2>/dev/null || echo "atlas-rollouts-metrics GSA already exists, continuing"
-
-gcloud projects add-iam-policy-binding velrite-tf-test \
-  --member="serviceAccount:atlas-rollouts-metrics@velrite-tf-test.iam.gserviceaccount.com" \
-  --role="roles/monitoring.viewer" \
-  --condition=None
-
-gcloud iam service-accounts add-iam-policy-binding \
-  atlas-rollouts-metrics@velrite-tf-test.iam.gserviceaccount.com \
-  --project=velrite-tf-test \
-  --role="roles/iam.workloadIdentityUser" \
-  --member="serviceAccount:velrite-tf-test.svc.id.goog[argo-rollouts/argo-rollouts]"
-
-kubectl annotate serviceaccount argo-rollouts -n argo-rollouts \
-  iam.gke.io/gcp-service-account=atlas-rollouts-metrics@velrite-tf-test.iam.gserviceaccount.com \
-  --overwrite
-# --- end Argo Rollouts (Phase 11) ---
