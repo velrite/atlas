@@ -2,7 +2,7 @@ namespace: atlas-platform
 
 image:
   registry: us-central1-docker.pkg.dev/velrite-tf-test/atlas-images
-  tag: "0f98f5b4"
+  tag: "f88d4a0f"
   pullPolicy: IfNotPresent
 
 serviceAccount:
