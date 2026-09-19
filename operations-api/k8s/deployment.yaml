@@ -21,7 +21,7 @@ spec:
           # it outright. Replace COMMIT_SHA with the real 8-char SHA
           # before applying, same convention already used for Atlas's
           # own deploys (image tag = commit SHA in values.yaml).
-          image: us-central1-docker.pkg.dev/velrite-tf-test/atlas/operations-api:COMMIT_SHA
+          image: us-central1-docker.pkg.dev/velrite-tf-test/atlas-images/operations-api:COMMIT_SHA
           ports:
             - containerPort: 8080
           # require-resource-requests-limits is the third live Kyverno
