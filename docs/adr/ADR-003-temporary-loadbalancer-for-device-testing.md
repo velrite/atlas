@@ -65,4 +65,12 @@ Operator's backend (tracked as future work, not yet implemented).
 - After device verification the Service was deleted and the cleartext
   flag was removed from the main manifest. The before/after service
   lists are evidence item 19.
+- While the Service was public (about 34 minutes at deletion), the pod
+  log tail showed automated internet scanners probing paths such as
+  `/vendor/phpunit/.../eval-stdin.php`, a ThinkPHP `invokefunction`
+  URL, and `/containers/json`. Every one returned 404, because the
+  service only serves `/health` and `/ready`. Only the last lines of the
+  log were reviewed, so this is not a full audit. It does show that a
+  zero-auth public endpoint gets probed within minutes, which is why
+  the teardown was done straight after the test.
 

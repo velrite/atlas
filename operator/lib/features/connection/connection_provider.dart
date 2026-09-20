@@ -4,12 +4,9 @@ import '../../core/network/connection_status.dart';
 import '../../core/configuration/environment.dart';
 
 final operationsApiClientProvider = Provider<OperationsApiClient>((ref) {
-  // TEMP for real-device test (Phase 9 device verification):
-  // pointed at the real LoadBalancer external IP so a physical phone
-  // can reach it over the internet, since Cloud Shell's port-forward
-  // only binds to Cloud Shell's own localhost. Revert to
-  // http://localhost:8080 + kubectl port-forward once this test is done
-  // and the LoadBalancer Service is torn down.
+  // Base URL is injected at build time: --dart-define=OPS_API_URL=http://<host>
+  // Defaults to http://localhost:8080 (kubectl port-forward svc/operations-api 8080:80).
+  // Never commit a real IP here (see ADR-003 and INCIDENT-010).
   return OperationsApiClient(
     baseUrl: const String.fromEnvironment('OPS_API_URL', defaultValue: 'http://localhost:8080'),
   );
