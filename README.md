@@ -42,25 +42,34 @@ Scoping these out is a deliberate, documented decision, not an oversight — see
 atlas/
 ├── terraform/            Infrastructure as Code (modules + environments)
 ├── kubernetes/           Raw Kubernetes manifests
-├── helm/                 Helm charts for platform components
+├── helm/                 Helm charts (atlas-platform)
 ├── gitops/               Argo CD Application definitions and GitOps config
+├── workloads/            Atlas services: API, scheduler, worker (shared common/)
 ├── scheduler/            Job scheduler source code
-├── workloads/            API, queue producer/consumer, worker source code
-├── observability/        Prometheus/Grafana/OpenTelemetry configuration
+├── operations-api/       Operations API for Atlas Operator (Python 3.12 / FastAPI)
+├── operator/             Atlas Operator: Flutter Android app
+├── observability/        Prometheus / Grafana / OpenTelemetry configuration
 ├── security/             Threat model, IAM policies, network policies
 ├── policies/             Policy-as-code definitions (admission control)
-├── chaos/                Chaos engineering experiment definitions and results
+├── chaos/                Chaos engineering experiments and results
 ├── tests/                Automated tests
-├── scripts-*.sh          Session startup/teardown and CI helper scripts
+├── scripts/              startup.sh, teardown.sh, generate-docs.sh, CI helpers
 ├── .gitlab-ci.yml        CI/CD pipeline definition
+├── scripts-sync-github.sh
+├── scripts-update-tag.sh
 └── docs/
-    ├── architecture/      System design documents
-    ├── decisions/         Architecture Decision Records (ADRs)
-    ├── reliability/       SLO definitions, error budget policy, drift/chaos evidence
-    ├── incidents/         Incident reports from real failures and chaos testing
-    ├── runbooks/          Operational runbooks (safe startup/shutdown, recovery procedures)
-    ├── security/          Security documentation, threat model
-    └── troubleshooting/   Known issues and resolutions
+    ├── adr/                Atlas Operator ADRs (001-003)
+    ├── architecture/       System design documents
+    ├── decisions/          Atlas ADRs
+    ├── engineering/        Technical debt and maturity assessment
+    ├── evidence/           Screenshot checklist and evidence files
+    ├── finops/
+    ├── incidents/          Incident reports and the Operator debugging log
+    ├── operations/         Operational troubleshooting (CI runner, builds, rollouts)
+    ├── reliability/        SLOs, error budget policy, drift/chaos evidence, reliability model
+    ├── runbooks/           Runbooks (startup/shutdown, Atlas Operator go-live)
+    ├── security/           Security documentation, threat model, controls
+    └── troubleshooting/    Known issues and resolutions
 ```
 
 
@@ -103,12 +112,44 @@ Every capability listed above is backed by a document in this repository, not ju
 
 This project runs on Google Cloud Platform under a billing account with active budget alerts. Infrastructure that incurs cost is documented at the point it is created, including expected cost drivers, and is destroyed between work sessions when not actively in use — see `docs/runbooks/session-startup-shutdown.md` for the exact, verified procedure.
 
+<!-- BEGIN ATLAS OPERATOR SECTION -->
+## Atlas Operator and Operations API
+
+Atlas Operator is a Flutter Android app (`operator/`) for checking on Atlas from a phone.
+It talks to the Operations API (`operations-api/`), a small Python 3.12 / FastAPI service
+deployed into the cluster. This is a separate body of work from the 18 Atlas phases above.
+
+**What is verified (2026-09-20, real device, real cluster):**
+- The connection banner, in INTEGRATION mode, called the Operations API's `/health` and
+  `/ready` from an Android phone. It went Healthy, then Failed (backend scaled to 0), then
+  Healthy again (scaled back to 1).
+- The first device attempt failed with `errno = 1` because the release build had no
+  `INTERNET` permission. The diagnosis and fix are in INCIDENT-010.
+- `flutter analyze` is clean and 24 tests pass. The CI pipeline passes on a self-hosted
+  GitLab runner (ADR-002).
+
+**What is NOT live:**
+- Every screen except the connection banner shows offline fixture data (component health,
+  jobs, deployments, diagnostics). Diagnostics shows a FIXTURE DATA label whenever the badge is
+  not OFFLINE. The Operations API has no endpoints for that data yet.
+- There is no authentication in the app or in the Operations API. Public exposure for the
+  device test was temporary and was torn down (ADR-003).
+- The app can only display Atlas. It can never run `terraform apply` or `destroy` (ADR-001).
+
+**Costs:** the cloud infrastructure is torn down when not in use. To bring it back, follow
+[`docs/runbooks/atlas-operator-go-live.md`](docs/runbooks/atlas-operator-go-live.md).
+
+Related: [ADR-001](docs/adr/ADR-001-operator-foundation.md),
+[ADR-002](docs/adr/ADR-002-self-hosted-ci-runner.md),
+[ADR-003](docs/adr/ADR-003-temporary-loadbalancer-for-device-testing.md),
+[incident log](docs/incidents/incident-log.md),
+[technical debt](docs/engineering/technical-debt.md).
+<!-- END ATLAS OPERATOR SECTION -->
+
 <!-- BEGIN GENERATED ENGINEERING DOCS SECTION -->
 ## Engineering Documentation
 
-This section is generated by `generate-docs.sh` and is safe to
-regenerate at any time — it will not touch content outside these
-markers.
+This section is generated by `generate-docs.sh` and is now guarded: it refuses to run without --force-overwrite, because regenerating rewrites hand-edited docs.
 
 - [System Overview](docs/architecture/system-overview.md)
 - [Infrastructure](docs/architecture/infrastructure.md)
