@@ -277,8 +277,55 @@ already-existing `setEnvironment()`.
 `flutter analyze` clean, `flutter test` 23/23 passing.
 
 ### Status
-Real-device verification of the resulting `INTEGRATION` connectivity
-check against the temporary public LoadBalancer (ADR-003) is
-**IN PROGRESS / NOT YET FULLY CONFIRMED** as of this document's
-generation — confirm actual on-device banner state before marking Phase
-9 fully closed.
+Resolved. On 2026-09-20, with the INTERNET permission fix from
+INCIDENT-010, the badge was tapped to INTEGRATION on a real Android
+device and the Check button was run against the real `operations-api`
+through the temporary LoadBalancer (ADR-003). Observed sequence,
+screen-recorded: Healthy, then Failed (backend deliberately scaled to
+0 replicas), then Healthy (scaled back to 1).
+
+Scope note: this closes the Phase 9 handshake, and the Phase 10 goal
+only for connection truthfulness. The Operations API serves only
+`/health` and `/ready`, so component health, jobs and diagnostics in
+the app are still fixture data and are NOT verified against the live
+cluster.
+
+---
+
+## INCIDENT-010: Release APK had no INTERNET permission
+
+### Symptom
+On a real device, the Overview connection banner showed:
+`ClientException with SocketException: Connection failed (OS Error:
+Operation not permitted, errno = 1)` when calling the Operations API.
+
+### Investigation
+errno 1 (EPERM) means the OS refused to open the socket at all, which
+is a different signature from "connection refused" or a timeout.
+`grep -n "uses-permission" android/app/src/main/AndroidManifest.xml`
+returned nothing. `grep -rn INTERNET android/app/src/` found the
+permission only in the `debug` and `profile` manifests, which Flutter's
+template adds for development. The APK had been built with `--release`.
+
+### Root Cause
+The main manifest declared no `INTERNET` permission, so release builds
+could not use the network.
+
+### Resolution
+Added `<uses-permission android:name="android.permission.INTERNET"/>`
+to the main manifest (commit a8a06d6). In the same commit the
+hardcoded backend IP was replaced with a build-time value
+(`--dart-define=OPS_API_URL=...`, default `http://localhost:8080`) so a
+temporary public IP is no longer committed to the repository.
+
+### Verification
+The same Check button that produced errno 1 returned Healthy after the
+fix, then Failed and Healthy again during fault injection (see
+INCIDENT-009). The only relevant change between the failing and passing
+runs was the permission line.
+
+### Preventive control
+Any Flutter app that makes network calls must declare `INTERNET` in the
+main manifest. Test release builds on a real device, not only debug
+builds, because debug and profile manifests add the permission
+automatically.

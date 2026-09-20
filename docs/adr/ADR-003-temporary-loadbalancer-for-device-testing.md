@@ -56,3 +56,13 @@ any build meant for real users.
 ## Revisit conditions
 Superseded once a real Ingress + TLS + auth story exists for Atlas
 Operator's backend (tracked as future work, not yet implemented).
+
+## Addendum (2026-09-20): what actually happened
+- The first LoadBalancer Service was found already absent when
+  re-checked (cause not investigated).
+- A new `operations-api-external` Service was created for the test and
+  answered `/health` and `/ready` from Cloud Shell before the phone test.
+- After device verification the Service was deleted and the cleartext
+  flag was removed from the main manifest. The before/after service
+  lists are evidence item 19.
+
