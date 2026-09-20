@@ -10,7 +10,9 @@ final operationsApiClientProvider = Provider<OperationsApiClient>((ref) {
   // only binds to Cloud Shell's own localhost. Revert to
   // http://localhost:8080 + kubectl port-forward once this test is done
   // and the LoadBalancer Service is torn down.
-  return OperationsApiClient(baseUrl: 'http://34.10.76.39');
+  return OperationsApiClient(
+    baseUrl: const String.fromEnvironment('OPS_API_URL', defaultValue: 'http://localhost:8080'),
+  );
 });
 
 class ConnectionNotifier extends AsyncNotifier<ConnectionStatus> {
