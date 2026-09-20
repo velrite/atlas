@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/widgets/environment_badge.dart';
 import '../../shared/models/diagnostic_result.dart';
+import '../../core/configuration/environment.dart';
 import 'diagnostics_providers.dart';
 
 class DiagnosticsScreen extends ConsumerWidget {
@@ -17,6 +18,7 @@ class DiagnosticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final runState = ref.watch(diagnosticRunProvider);
+    final env = ref.watch(environmentProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +31,19 @@ class DiagnosticsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (env != Environment.offline) ...[
+            Card(
+              color: Colors.amber.withValues(alpha: 0.1),
+              child: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text(
+                  'FIXTURE DATA - Diagnostics is not connected to the live cluster. '
+                  'The Operations API only serves /health and /ready today.',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Card(
             child: ListTile(
               title: const Text('Worker Capacity'),
