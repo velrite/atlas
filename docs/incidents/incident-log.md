@@ -94,6 +94,12 @@ CRD-dependent manifests must always be installed after their CRDs in any
 automation script, verified by re-running the full script fresh (not
 just inspecting it) before calling a script fix "done."
 
+### Follow-up (2026-09-20)
+During the manual install, the Argo Rollouts `install.yaml` Deployment (which carries no
+namespace) landed in `default` instead of `argo-rollouts`, so the controller never ran. The
+apply line in `startup.sh` now passes `-n argo-rollouts` explicitly. Still NOT verified by a
+full fresh run; only syntax (`bash -n`) and line placement were checked.
+
 ---
 
 ## INCIDENT-004: GitLab CI exhausted free compute minutes

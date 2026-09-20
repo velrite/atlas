@@ -16,6 +16,13 @@
 #
 set -euo pipefail
 
+# SAFETY (added 2026-09-20): this script rewrites docs from built-in text and would
+# undo later manual edits (INCIDENT-009/010, ADR-003 addendum, debt table).
+if [ "${1:-}" != "--force-overwrite" ]; then
+  echo "Refusing to run: this overwrites hand-edited docs. Use --force-overwrite if you really mean it." >&2
+  exit 1
+fi
+
 # ---------------------------------------------------------------------------
 # 0. Locate the repository. Refuse to run outside a real git repo.
 # ---------------------------------------------------------------------------

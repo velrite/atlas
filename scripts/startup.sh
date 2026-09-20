@@ -54,7 +54,7 @@ echo "Context confirmed: $CTX"
 # a misleadingly "healthy-looking" but actually broken install.
 # --server-side --force-conflicts avoids the client-side annotation-size limit.
 kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply --server-side --force-conflicts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+kubectl apply -n argo-rollouts --server-side --force-conflicts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
 kubectl wait --for=condition=available --timeout=120s deployment/argo-rollouts -n argo-rollouts
 
 # Workload Identity binding for atlas-rollouts-metrics GSA.

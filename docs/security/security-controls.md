@@ -21,8 +21,8 @@
   `/health`/`/ready` endpoints. During Phase 9 real-device testing
   (ADR-003), this was briefly exposed to the public internet via a
   temporary `LoadBalancer` Service and Android's cleartext-HTTP block
-  was relaxed for that one test build. Both were reverted / must be
-  reverted after the test — see ADR-003 for the full trade-off.
+  was relaxed for that one test build. Both were reverted on 2026-09-20 (Service deleted,
+  cleartext flag removed) — see ADR-003 for the full trade-off.
 
 ## Before publishing any screenshot from this project
 

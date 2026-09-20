@@ -39,5 +39,7 @@ An honest, non-promotional read of where this project actually stands.
 ## What requires further testing
 - The `startup.sh` reordering fix, end-to-end, on a genuinely fresh
   environment.
-- Real-device Phase 9 connectivity, confirmed with an actual observed
-  banner state (healthy or failed) rather than assumed.
+- Live data beyond `/health` and `/ready` (component health, jobs,
+  diagnostics): the Operations API has no endpoints for them yet.
+  (Real-device connectivity was verified 2026-09-20: Healthy, Failed,
+  Healthy.)
