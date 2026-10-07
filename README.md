@@ -2,7 +2,7 @@
 
 Atlas is a distributed workload execution platform on Google Kubernetes Engine. I built it to answer one question with measurements instead of claims: what actually happens when parts of the system fail?
 
-**Status:** Phases 0-12 and 14-18 are complete and documented. Phase 13 (multi-region) was designed in [ADR-001](docs/decisions/ADR-001-multi-region-topology.md) and deliberately deferred in [ADR-018](docs/decisions/ADR-018-followup-phase13-deferred.md). Nothing in this repository claims multi-region behavior. Every number below comes from a recorded experiment, and the linked document holds the evidence.
+**Status:** Atlas phases 0-12 and 14-18 are complete and documented. Phase 13 (multi-region) was designed in [ADR-001](docs/decisions/ADR-001-multi-region-topology.md) and deliberately deferred in [ADR-018](docs/decisions/ADR-018-followup-phase13-deferred.md). Nothing in this repository claims multi-region behavior. Atlas Operator, a mobile app built later, is a separate and smaller body of work with its own section below. Every number comes from a recorded experiment, and the linked document holds the evidence.
 
 This is not an AI/ML project. There is no model serving, GPU workload, or AI service anywhere in it.
 
@@ -17,22 +17,23 @@ Running a job is the easy part. The hard part is staying correct and recoverable
 ---
 
 ## Architecture
-client
-| POST /jobs
-v
-atlas-api Flask, delivered as an Argo Rollouts canary
-| enqueue job + W3C trace context
-v
-Redis atlas:queue:pending
-|
-v
-atlas-scheduler capacity-aware best-fit, atomic capacity reservation
-| assign, or requeue when no worker has room
-v
-Redis atlas:queue:worker:<worker-id>
-|
-v
-atlas-worker 2 to 10 replicas (KEDA), 3 attempts then dead-letter
+
+    client
+      |  POST /jobs
+      v
+    atlas-api            Flask, delivered as an Argo Rollouts canary
+      |  enqueue job + W3C trace context
+      v
+    Redis                atlas:queue:pending
+      |
+      v
+    atlas-scheduler      capacity-aware best-fit, atomic capacity reservation
+      |  assign, or requeue when no worker has room
+      v
+    Redis                atlas:queue:worker:<worker-id>
+      |
+      v
+    atlas-worker         2 to 10 replicas (KEDA), 3 attempts then dead-letter
 
 | Component | Notes |
 |---|---|
@@ -101,38 +102,41 @@ The full table is in [failure-matrix.md](docs/reliability/failure-matrix.md).
 
 **Dependencies.** `setuptools` 82 removed `pkg_resources`, which the OpenTelemetry Flask instrumentation imports. My first fix had no upper bound and resolved to 84.0.0, which also lacks it. Pinned below 82. ([INCIDENT-004](docs/incidents/INCIDENT-004-setuptools-pkg-resources.md))
 
-**Delivery.** The GitLab to GitHub sync pushed blindly and lost races against manual pushes. It now fetches and rebases first. ([INCIDENT-005](docs/incidents/INCIDENT-005-gitops-sync-race-and-rollback-proof.md))
+**Delivery sync.** The GitLab to GitHub sync pushed blindly and lost races against manual pushes. It now fetches and rebases first. ([INCIDENT-005](docs/incidents/INCIDENT-005-gitops-sync-race-and-rollback-proof.md))
 
-**CI capacity.** GitLab shared-runner minutes ran out. CI now runs on a self-hosted runner on a separate GCE VM. It is outside the cluster on purpose: the builds need privileged Docker-in-Docker, which the cluster's Kyverno policy correctly refuses.
+**CI capacity.** GitLab shared-runner minutes ran out. CI now runs on a self-hosted runner on a separate GCE VM, outside the cluster on purpose: the builds need privileged Docker-in-Docker, which the cluster's Kyverno policy correctly refuses. Getting it working took two more fixes: the runner carried a tag, so it ignored untagged jobs until `run_untagged` was enabled, and GitLab kept sending jobs to the exhausted shared pool until shared runners were disabled for the project through the API. ([ADR-002 Operator](docs/adr/ADR-002-self-hosted-ci-runner.md))
 
-**Install order.** Third-party CRDs over the annotation size limit fail under plain `kubectl apply` while the controller still looks healthy. They need `--server-side`. The Rollouts CRDs also have to be installed before the Helm release that creates a `Rollout`; `scripts/startup.sh` is ordered accordingly.
+**Rebuild from empty.** After a teardown the image registry is empty and `values.yaml` pointed at an image that no longer existed (plus a duplicate `tag:` key), so pods sat in ImagePullBackOff until images were rebuilt and the tag was fixed.
+
+**Install order.** Third-party CRDs over the annotation size limit fail under plain `kubectl apply` while the controller still looks healthy. They need `--server-side`. The Rollouts CRDs also have to be installed before the Helm release that creates a `Rollout`, and the manifest has no namespace of its own: without `-n argo-rollouts` the controller landed in `default` and never reconciled anything. `scripts/startup.sh` is changed accordingly, and that change is not yet proven by a full fresh run (see limitations).
 
 **Observability.** Grafana has no persistent volume, so a pod reschedule wipes its token and datasource. This happened twice and was recovered by hand. A counter can also be correct at a pod's `/metrics` for minutes while Google Managed Prometheus still reads zero, which is backend ingestion lag, not a bug.
 
 ---
 
 ## Delivery Path and Identity
-commit
-|
-v
-GitLab CI: test, lint, SAST, dependency scan, IaC scan,
-build x3, image scan, push, gitops-update
-|
-v
-helm/atlas-platform/values.yaml image tag bumped, synced to GitHub
-|
-v
-Argo CD (automated, selfHeal) --> Argo Rollouts canary 10 / 25 / 50 / 100
 
-GitLab CI
-| Workload Identity Federation (OIDC, scoped to this project and branch)
-v
-GCP identity --> Artifact Registry
+    commit
+      |
+      v
+    GitLab CI: test, lint, SAST, dependency scan, IaC scan,
+               build x3, image scan, push, gitops-update
+      |
+      v
+    helm/atlas-platform/values.yaml image tag bumped, synced to GitHub
+      |
+      v
+    Argo CD (automated, selfHeal) --> Argo Rollouts canary 10 / 25 / 50 / 100
 
-Terraform
-| service account impersonation
-v
-GCP APIs
+    GitLab CI
+       |  Workload Identity Federation (OIDC, scoped to this project and branch)
+       v
+    GCP identity --> Artifact Registry
+
+    Terraform
+       |  service account impersonation
+       v
+    GCP APIs
 
 An organization policy blocks service-account key creation, so there is no static GCP credential in this project. `gcloud iam service-accounts keys list --managed-by=user` on the Terraform service account returns zero keys. There is one deliberate static secret: the scoped GitHub token CI uses to push to GitHub ([ADR-011](docs/decisions/ADR-011-github-gitlab-sync.md)).
 
@@ -147,7 +151,7 @@ An organization policy blocks service-account key creation, so there is no stati
 | Scheduling latency | p95 above 50 ms |
 | Job success rate | below 99% |
 
-Targets and reasoning are in [ADR-015](docs/decisions/ADR-015-slo-definitions.md). Two of the alerts fired during load testing and recovered on their own.
+Targets and reasoning are in [ADR-015](docs/decisions/ADR-015-slo-definitions.md). Two of the alerts fired during burst testing and recovered on their own.
 
 Baselines came from about 21 jobs: API latency around 5 ms flat, scheduling p50/p95/p99 about 7.5 / 9.75 / 9.95 ms. That is a small, low-volume sample and should be read that way.
 
@@ -170,9 +174,9 @@ While collecting the baseline, job success rate read about 13%. I traced it by i
 
 ## Security
 
-Implemented: namespace-scoped RBAC, Workload Identity, Workload Identity Federation, NetworkPolicy with default-deny and explicit allows, three Kyverno policies enforced at admission (resource requests and limits, no `:latest` tags, no privileged containers), SAST and dependency, IaC and image scanning in CI, and a written [threat model](docs/security/threat-model.md).
+Implemented: namespace-scoped RBAC, Workload Identity, Workload Identity Federation, NetworkPolicy with default-deny and explicit allows, three Kyverno policies enforced at admission (resource requests and limits, no `:latest` tags, no privileged containers), SAST plus dependency, IaC and image scanning in CI, and a written [threat model](docs/security/threat-model.md).
 
-Admission control was tested for real: a pod without resource limits was rejected at the API server.
+Admission control was tested for real: a pod without resource limits was rejected at the API server. That was demonstrated on the original cluster. `scripts/startup.sh` does not install Kyverno, so a rebuilt cluster has these policies only if they are applied again by hand.
 
 Gaps, stated plainly: the Atlas API has no authentication and relies on NetworkPolicy alone. Redis has no auth. Secret Manager is not used.
 
@@ -184,30 +188,28 @@ Two nodes of `e2-standard-4` cost $0.2680/hour, or $195.67/month, using list pri
 
 ---
 
-## Atlas Operator
+## Atlas Operator and Operations API
 
-`operator/` is a Flutter Android app for viewing and operating Atlas. It is a client of a small backend, `operations-api/` (FastAPI), not a second infrastructure platform. It is an early, partial interface and not a finished operations console.
+Atlas Operator (`operator/`) is a Flutter Android app for checking on Atlas from a phone. It uses Riverpod for state and a capped Hive cache on the device. Its backend, `operations-api/`, is a small FastAPI service in the cluster that serves only `/health` and `/ready`. The app has three modes shown on a badge in the app bar, which cycles on tap: OFFLINE (fixtures), INTEGRATION (a real call to the Operations API) and LIVE (not connected to anything real yet).
 
-**Real device verification.** Verified on 2026-09-20 with a real Android phone against the cluster backend:
-Healthy
-|
-Backend scaled to 0
-|
-Failed
-|
-Backend restored to 1
-|
-Healthy
+**Verified on a real device**
+- In INTEGRATION mode the connection banner went Healthy, then Failed (the backend was scaled to 0 replicas), then Healthy again (scaled back to 1). The sequence is recorded in the Operator incident log as INCIDENT-009.
+- The first device attempt failed with `SocketException ... errno = 1`. Cause: the main Android manifest had no `INTERNET` permission. The debug and profile manifests do have it, which is why a debug build would never have shown the problem. Fixed and recorded as INCIDENT-010.
+- `flutter analyze` is clean and 24 tests pass at the last run.
+- Recent pipelines ran green. Shared runners are disabled for the project, so the jobs ran on the self-hosted runner.
 
-Also verified: `flutter analyze` clean, 24 tests passing, CI passing on the self-hosted GitLab runner.
+**Not live, by design**
+- Every screen except the connection banner shows offline fixture data (component health, jobs, deployments, diagnostics). Diagnostics shows a FIXTURE DATA label whenever the badge is not OFFLINE, so a LIVE badge can never sit above fixture numbers unlabelled.
+- There is no authentication in the app or in the Operations API.
+- The Operations API image is not built by CI. It is built and pushed by hand.
+- The app can display Atlas but can never run `terraform apply` or `destroy` (Operator [ADR-001](docs/adr/ADR-001-operator-foundation.md)).
 
-**Current implementation boundary**
+**Public exposure used for the device test**
+A temporary LoadBalancer put the zero-auth endpoints on the internet for about 34 minutes ([ADR-003](docs/adr/ADR-003-temporary-loadbalancer-for-device-testing.md)). The pod log tail showed automated scanners probing for phpunit, ThinkPHP and Docker API paths, and every probe got a 404. Only the end of the log was read, so this is not a full audit. The Service was deleted straight after, and the temporary cleartext-HTTP flag was removed from the manifest.
 
-- The connection and health check is backed by the live Operations API.
-- Every other screen uses fixture data and is labeled as such.
-- Authentication is not implemented.
-- Temporary external exposure used for device testing was torn down.
-- The app does not run `terraform apply` or `destroy`, by design.
+**Other real problems from this build:** a test fake that skipped `MockPlatformInterfaceMixin`; a cache write failure that turned a good read into an error; `pumpAndSettle()` hanging on a loading spinner; Cloud Shell's 4.8 GB home disk running out during the first Android build (the SDK moved to `/opt`); and the badge having no tap handler, so INTEGRATION mode could not be entered. All are in [the Operator incident log](docs/incidents/incident-log.md).
+
+To bring it back up: [go-live runbook](docs/runbooks/atlas-operator-go-live.md).
 
 ---
 
@@ -224,10 +226,13 @@ Out of scope by design: simultaneous failure of multiple regions, a GCP control-
 - Redis is a single instance with no persistence, so a pod replacement loses in-flight jobs. The next fix is a persistent volume with AOF.
 - The scheduler is a single-threaded loop, which is the likely throughput ceiling.
 - Worker capacity is self-reported, not measured from cgroups.
-- No authentication on the Atlas API or Redis.
+- No authentication on the Atlas API, the Operations API or Redis.
 - Grafana state is not persistent and its recovery is not automated.
-- Autoscaling is configured and READY, but a fixed versus autoscaled cost run has not been done.
+- Autoscaling is configured, but a fixed versus autoscaled cost run has not been done.
 - Regional failover has not been built or measured.
+- `scripts/startup.sh` has not been run end to end since its latest fixes. They were checked for syntax and placement only. Reading the script shows step 5 waits on `deployment/atlas-api` although `atlas-api` is a Rollout, which would likely stop a fresh run. That is found by reading, not by running, and it is not fixed yet.
+- `startup.sh` does not install Kyverno or KEDA, so a rebuild restores them only if they are applied by hand.
+- Operator screens other than the connection banner are fixtures, as described above.
 
 ---
 
@@ -244,33 +249,102 @@ Out of scope by design: simultaneous failure of multiple regions, a GCP control-
 | 14-15 | Chaos experiments, incident consolidation | Complete |
 | 16-17 | Load testing, FinOps | Complete |
 | 18 | Documentation and retrospective | Complete |
+| Operator 0-9 | Flutter app, Operations API, real-device connection check | Complete |
+| Operator 10+ | Live data endpoints behind the app's other screens | Not started |
 
 ---
 
 ## Repository Layout
-terraform/ modules and environments (GCS backend, impersonation)
-helm/ atlas-platform chart
-gitops/ Argo CD Application and AppProject
-workloads/ api, scheduler, worker, shared job model
-operations-api/ FastAPI backend for the Operator app
-operator/ Flutter Android app
-observability/ dashboards and alert policies
-policies/ Kyverno policies
-security/ security configuration
-chaos/ experiments with hypothesis, blast radius, outcome
-scripts/ startup.sh and teardown.sh
-docs/ decisions, incidents, reliability, runbooks, security, finops
+
+    terraform/        modules and environments (GCS backend, impersonation)
+    helm/             atlas-platform chart
+    gitops/           Argo CD Application and AppProject
+    workloads/        api, scheduler, worker, shared job model
+    scheduler/        scheduler source
+    operations-api/   FastAPI backend for the Operator app
+    operator/         Flutter Android app
+    observability/    dashboards and alert policies
+    policies/         Kyverno policies
+    security/         security configuration
+    chaos/            experiments with hypothesis, blast radius, outcome
+    scripts/          startup.sh, teardown.sh, generate-docs.sh
+    tests/            automated tests
+    docs/             decisions, adr, incidents, reliability, runbooks, security, finops
+    .gitlab-ci.yml    pipeline definition
 
 ## Documentation
 
-- Decisions: [docs/decisions/](docs/decisions/) (ADR-001 to ADR-019)
-- Incidents: [docs/incidents/](docs/incidents/) (INCIDENT-001 to INCIDENT-006)
+Two sets of ADRs and incident numbers exist and they restart at 001:
+
+- Atlas: ADRs in [docs/decisions/](docs/decisions/) (ADR-001 to ADR-019) and incident reports in [docs/incidents/](docs/incidents/) (INCIDENT-001 to INCIDENT-006 files).
+- Atlas Operator: ADRs in [docs/adr/](docs/adr/) (ADR-001 to ADR-003) and its log in [docs/incidents/incident-log.md](docs/incidents/incident-log.md), which numbers its entries INCIDENT-001 to INCIDENT-010 separately.
+
+Other documents:
+
 - Chaos experiments: [chaos/](chaos/)
 - Failure matrix: [docs/reliability/failure-matrix.md](docs/reliability/failure-matrix.md)
 - Load test: [docs/reliability/load-test-phase16.md](docs/reliability/load-test-phase16.md)
-- Runbooks: [full-recovery](docs/runbooks/full-recovery.md), [session startup and shutdown](docs/runbooks/session-startup-shutdown.md)
+- Operator system overview: [docs/architecture/system-overview.md](docs/architecture/system-overview.md)
+- Operator security controls: [docs/security/security-controls.md](docs/security/security-controls.md)
+- Technical debt: [docs/engineering/technical-debt.md](docs/engineering/technical-debt.md)
+- Engineering maturity: [docs/engineering/engineering-maturity.md](docs/engineering/engineering-maturity.md)
+- Runbooks: [full recovery](docs/runbooks/full-recovery.md), [session startup and shutdown](docs/runbooks/session-startup-shutdown.md), [Operator go-live](docs/runbooks/atlas-operator-go-live.md)
 - Retrospective: [docs/RETROSPECTIVE.md](docs/RETROSPECTIVE.md)
+
+`scripts/generate-docs.sh` regenerates the Operator docs from built-in text. It refuses to run without `--force-overwrite`, because it would revert later hand edits.
+
+## Evidence
+
+Screenshots are taken against a running cluster, so they are added when the platform is brought up. The checklist, with exact commands, expected output and filenames, is [docs/evidence/README.md](docs/evidence/README.md).
+
+Captured so far:
+
+![01-cluster-nodes](docs/evidence/01-cluster-nodes.png)
+
+![02-namespaces](docs/evidence/02-namespaces.png)
+
+![03-argocd-application-health](docs/evidence/03-argocd-application-health.png)
+
+![04-canary-rollout-steps](docs/evidence/04-canary-rollout-steps.png)
+
+![05-canary-automatic-rollback-incident006](docs/evidence/05-canary-automatic-rollback-incident006.png)
+
+![06-gitlab-pipeline-success](docs/evidence/06-gitlab-pipeline-success.png)
+
+![07-artifact-registry-image-history](docs/evidence/07-artifact-registry-image-history.png)
+
+![08-workload-identity-federation-no-static-keys](docs/evidence/08-workload-identity-federation-no-static-keys.png)
+
+![09-networkpolicy-default-deny](docs/evidence/09-networkpolicy-default-deny.png)
+
+![10-kyverno-real-denial](docs/evidence/10-kyverno-real-denial.png)
+
+![11-kyverno-clusterpolicy-status](docs/evidence/11-kyverno-clusterpolicy-status.png)
+
+![12-poddisruptionbudgets](docs/evidence/12-poddisruptionbudgets.png)
+
+![13-chaos-node-drain](docs/evidence/13-chaos-node-drain.png)
+
+![14-chaos-redis-dependency-down](docs/evidence/14-chaos-redis-dependency-down.png)
+
+![15-chaos-pod-failure-recovery](docs/evidence/15-chaos-pod-failure-recovery.png)
+
+![16-keda-scaledobject-status](docs/evidence/16-keda-scaledobject-status.png)
+
+![19B-cloud-monitoring-alert-policies](docs/evidence/19B-cloud-monitoring-alert-policies.png)
+
+![19-cloud-monitoring-alert-policies](docs/evidence/19-cloud-monitoring-alert-policies.png)
+
+![20-gitops-dual-remote-sync](docs/evidence/20-gitops-dual-remote-sync.png)
+
+![21-terraform-no-static-keys](docs/evidence/21-terraform-no-static-keys.png)
+
+![22-finops-cost-attribution](docs/evidence/22-finops-cost-attribution.png)
+
+![23-documentation-index](docs/evidence/23-documentation-index.png)
+
+![24-full-platform-health-snapshot](docs/evidence/24-full-platform-health-snapshot.png)
 
 ## Running It
 
-`scripts/startup.sh` builds the environment and pauses for plan confirmation before any `terraform apply`. `scripts/teardown.sh` only prints the destroy plan and never applies it. The cluster costs roughly $0.27/hour while up and is torn down between sessions.
+`scripts/startup.sh` builds the environment and pauses for plan confirmation before any `terraform apply`. `scripts/teardown.sh` only prints the destroy plan and never applies it. The cluster costs roughly $0.27/hour while up and is destroyed between sessions.
