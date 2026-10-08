@@ -295,7 +295,7 @@ Other documents:
 
 ## Evidence
 
-Screenshots are taken against a running cluster, so they are added when the platform is brought up. The checklist, with exact commands, expected output and filenames, is [docs/evidence/README.md](docs/evidence/README.md).
+These screenshots were captured against the running cluster. [docs/evidence/README.md](docs/evidence/README.md) lists every file in this folder. Evidence for the Atlas Operator device test (the connection banner and the Flutter test run) is not captured yet.
 
 Captured so far:
 
