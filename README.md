@@ -295,7 +295,7 @@ Other documents:
 
 ## Evidence
 
-These screenshots were captured against the running cluster. [docs/evidence/README.md](docs/evidence/README.md) lists every file in this folder. Evidence for the Atlas Operator device test (the connection banner and the Flutter test run) is not captured yet.
+These screenshots were captured against the running cluster. [docs/evidence/README.md](docs/evidence/README.md) lists every file in this folder. Screenshots for the Atlas Operator work (Operations API, CI runner, LoadBalancer teardown, Flutter tests) are in [operator/docs/evidence](operator/docs/evidence/README.md). A phone screenshot of the connection banner is not included yet.
 
 Captured so far:
 
@@ -393,6 +393,62 @@ Captured so far:
 **24-full-platform-health-snapshot**
 
 <img src="docs/evidence/24-full-platform-health-snapshot.png" width="700" alt="full platform health snapshot">
+
+</details>
+
+
+Atlas Operator screenshots:
+
+<details>
+<summary>Show the 12 Atlas Operator screenshots</summary>
+
+**01-cluster-nodes**
+
+<img src="operator/docs/evidence/01-cluster-nodes.png" width="700" alt="cluster nodes">
+
+**02-atlas-platform-workloads**
+
+<img src="operator/docs/evidence/02-atlas-platform-workloads.png" width="700" alt="atlas platform workloads">
+
+**03-atlas-api-rollout-healthy**
+
+<img src="operator/docs/evidence/03-atlas-api-rollout-healthy.png" width="700" alt="atlas api rollout healthy">
+
+**04-argo-rollouts-controller**
+
+<img src="operator/docs/evidence/04-argo-rollouts-controller.png" width="700" alt="argo rollouts controller">
+
+**06-operations-api-live**
+
+<img src="operator/docs/evidence/06-operations-api-live.png" width="700" alt="operations api live">
+
+**07-gitlab-pipeline-passed**
+
+<img src="operator/docs/evidence/07-gitlab-pipeline-passed.png" width="700" alt="gitlab pipeline passed">
+
+**08-self-hosted-runner-online**
+
+<img src="operator/docs/evidence/08-self-hosted-runner-online.png" width="700" alt="self hosted runner online">
+
+**09-networkpolicy-default-deny**
+
+<img src="operator/docs/evidence/09-networkpolicy-default-deny.png" width="700" alt="networkpolicy default deny">
+
+**15-loadbalancer-teardown**
+
+<img src="operator/docs/evidence/15-loadbalancer-teardown.png" width="700" alt="loadbalancer teardown">
+
+**16-ci-security-scans**
+
+<img src="operator/docs/evidence/16-ci-security-scans.png" width="700" alt="ci security scans">
+
+**17-flutter-test-suite-green**
+
+<img src="operator/docs/evidence/17-flutter-test-suite-green.png" width="700" alt="flutter test suite green">
+
+**18-incident-fix-commit**
+
+<img src="operator/docs/evidence/18-incident-fix-commit.png" width="700" alt="incident fix commit">
 
 </details>
 

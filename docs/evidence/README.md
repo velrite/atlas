@@ -2,7 +2,7 @@
 
 Screenshots captured against the running Atlas cluster. Each row is a real file in this folder.
 Numbers 17 and 18 were never captured, and 19B is a second capture of 19.
-Operator-side screenshots (device banner, Flutter tests) are not here yet.
+Atlas Operator screenshots are in [operator/docs/evidence](../../operator/docs/evidence/README.md).
 
 | File | Shows |
 |---|---|
