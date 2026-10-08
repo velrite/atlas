@@ -299,51 +299,102 @@ These screenshots were captured against the running cluster. [docs/evidence/READ
 
 Captured so far:
 
-![01-cluster-nodes](docs/evidence/01-cluster-nodes.png)
+<details>
+<summary>Show all 23 screenshots</summary>
 
-![02-namespaces](docs/evidence/02-namespaces.png)
+**01-cluster-nodes**
 
-![03-argocd-application-health](docs/evidence/03-argocd-application-health.png)
+<img src="docs/evidence/01-cluster-nodes.png" width="700" alt="cluster nodes">
 
-![04-canary-rollout-steps](docs/evidence/04-canary-rollout-steps.png)
+**02-namespaces**
 
-![05-canary-automatic-rollback-incident006](docs/evidence/05-canary-automatic-rollback-incident006.png)
+<img src="docs/evidence/02-namespaces.png" width="700" alt="namespaces">
 
-![06-gitlab-pipeline-success](docs/evidence/06-gitlab-pipeline-success.png)
+**03-argocd-application-health**
 
-![07-artifact-registry-image-history](docs/evidence/07-artifact-registry-image-history.png)
+<img src="docs/evidence/03-argocd-application-health.png" width="700" alt="argocd application health">
 
-![08-workload-identity-federation-no-static-keys](docs/evidence/08-workload-identity-federation-no-static-keys.png)
+**04-canary-rollout-steps**
 
-![09-networkpolicy-default-deny](docs/evidence/09-networkpolicy-default-deny.png)
+<img src="docs/evidence/04-canary-rollout-steps.png" width="700" alt="canary rollout steps">
 
-![10-kyverno-real-denial](docs/evidence/10-kyverno-real-denial.png)
+**05-canary-automatic-rollback-incident006**
 
-![11-kyverno-clusterpolicy-status](docs/evidence/11-kyverno-clusterpolicy-status.png)
+<img src="docs/evidence/05-canary-automatic-rollback-incident006.png" width="700" alt="canary automatic rollback incident006">
 
-![12-poddisruptionbudgets](docs/evidence/12-poddisruptionbudgets.png)
+**06-gitlab-pipeline-success**
 
-![13-chaos-node-drain](docs/evidence/13-chaos-node-drain.png)
+<img src="docs/evidence/06-gitlab-pipeline-success.png" width="700" alt="gitlab pipeline success">
 
-![14-chaos-redis-dependency-down](docs/evidence/14-chaos-redis-dependency-down.png)
+**07-artifact-registry-image-history**
 
-![15-chaos-pod-failure-recovery](docs/evidence/15-chaos-pod-failure-recovery.png)
+<img src="docs/evidence/07-artifact-registry-image-history.png" width="700" alt="artifact registry image history">
 
-![16-keda-scaledobject-status](docs/evidence/16-keda-scaledobject-status.png)
+**08-workload-identity-federation-no-static-keys**
 
-![19B-cloud-monitoring-alert-policies](docs/evidence/19B-cloud-monitoring-alert-policies.png)
+<img src="docs/evidence/08-workload-identity-federation-no-static-keys.png" width="700" alt="workload identity federation no static keys">
 
-![19-cloud-monitoring-alert-policies](docs/evidence/19-cloud-monitoring-alert-policies.png)
+**09-networkpolicy-default-deny**
 
-![20-gitops-dual-remote-sync](docs/evidence/20-gitops-dual-remote-sync.png)
+<img src="docs/evidence/09-networkpolicy-default-deny.png" width="700" alt="networkpolicy default deny">
 
-![21-terraform-no-static-keys](docs/evidence/21-terraform-no-static-keys.png)
+**10-kyverno-real-denial**
 
-![22-finops-cost-attribution](docs/evidence/22-finops-cost-attribution.png)
+<img src="docs/evidence/10-kyverno-real-denial.png" width="700" alt="kyverno real denial">
 
-![23-documentation-index](docs/evidence/23-documentation-index.png)
+**11-kyverno-clusterpolicy-status**
 
-![24-full-platform-health-snapshot](docs/evidence/24-full-platform-health-snapshot.png)
+<img src="docs/evidence/11-kyverno-clusterpolicy-status.png" width="700" alt="kyverno clusterpolicy status">
+
+**12-poddisruptionbudgets**
+
+<img src="docs/evidence/12-poddisruptionbudgets.png" width="700" alt="poddisruptionbudgets">
+
+**13-chaos-node-drain**
+
+<img src="docs/evidence/13-chaos-node-drain.png" width="700" alt="chaos node drain">
+
+**14-chaos-redis-dependency-down**
+
+<img src="docs/evidence/14-chaos-redis-dependency-down.png" width="700" alt="chaos redis dependency down">
+
+**15-chaos-pod-failure-recovery**
+
+<img src="docs/evidence/15-chaos-pod-failure-recovery.png" width="700" alt="chaos pod failure recovery">
+
+**16-keda-scaledobject-status**
+
+<img src="docs/evidence/16-keda-scaledobject-status.png" width="700" alt="keda scaledobject status">
+
+**19-cloud-monitoring-alert-policies**
+
+<img src="docs/evidence/19-cloud-monitoring-alert-policies.png" width="700" alt="cloud monitoring alert policies">
+
+**19B-cloud-monitoring-alert-policies**
+
+<img src="docs/evidence/19B-cloud-monitoring-alert-policies.png" width="700" alt="cloud monitoring alert policies">
+
+**20-gitops-dual-remote-sync**
+
+<img src="docs/evidence/20-gitops-dual-remote-sync.png" width="700" alt="gitops dual remote sync">
+
+**21-terraform-no-static-keys**
+
+<img src="docs/evidence/21-terraform-no-static-keys.png" width="700" alt="terraform no static keys">
+
+**22-finops-cost-attribution**
+
+<img src="docs/evidence/22-finops-cost-attribution.png" width="700" alt="finops cost attribution">
+
+**23-documentation-index**
+
+<img src="docs/evidence/23-documentation-index.png" width="700" alt="documentation index">
+
+**24-full-platform-health-snapshot**
+
+<img src="docs/evidence/24-full-platform-health-snapshot.png" width="700" alt="full platform health snapshot">
+
+</details>
 
 ## Running It
 
